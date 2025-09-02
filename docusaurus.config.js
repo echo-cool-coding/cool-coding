@@ -113,6 +113,11 @@ const config = {
             async: true,
             crossorigin: 'anonymous',
         },
+        {
+            src: 'https://hm.baidu.com/hm.js?1b165f68ccbfbd01c804c65a81779d58',
+            async: true,
+            crossorigin: 'anonymous',
+        },
     ],
 
     // GitHub pages deployment config.
