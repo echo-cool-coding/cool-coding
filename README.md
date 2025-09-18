@@ -56,3 +56,7 @@
 
 喜欢这个项目吗？到 [GitHub](https://github.com/echo-cool-coding/cool-coding) 给我们点个 ⭐ 支持一下吧！
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=echo-cool-coding/cool-coding&type=Date)](https://www.star-history.com/#echo-cool-coding/cool-coding&Date)
+
