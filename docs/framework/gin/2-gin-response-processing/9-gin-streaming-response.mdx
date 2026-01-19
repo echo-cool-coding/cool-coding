@@ -20,7 +20,7 @@ description: 了解如何在Gin框架中实现流式响应，逐步掌握流式�
 
 Gin框架通过`c.Stream()`方法支持流式响应。以下是一个简单的示例，展示如何使用Gin实现流式响应。
 
-### 示例代码
+### 示例代码1
 
 ```go
 package main
@@ -38,6 +38,8 @@ func main() {
             for i := 0; i < 10; i++ {
                 time.Sleep(1 * time.Second)
                 c.SSEvent("message", "Hello, World!")
+                // 同一个step内的循环，要手动flush才会逐次输出
+                c.Writer.Flush()
             }
             return false // 结束流
         })
@@ -46,6 +48,37 @@ func main() {
     r.Run(":8080")
 }
 ```
+### 示例代码2
+
+```go
+package main
+
+import (
+	"io"
+	"time"
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+	r := gin.Default()
+
+	r.GET("/stream", func(c *gin.Context) {
+		i := 0
+		c.Stream(func(w io.Writer) bool {
+			if i >= 10 {
+				return false // 结束流
+			}
+			time.Sleep(1 * time.Second)
+			c.SSEvent("message", "Hello, World!")
+			i++
+			return true // 继续下一轮，Gin 会自动 Flush
+		})
+	})
+
+	r.Run(":8080")
+}
+```
+
 
 ### 代码解析
 
