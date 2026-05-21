@@ -58,7 +58,7 @@ prod_logs
 version: '3'
 services:
   kafka-dev:
-    image: bitnami/kafka:latest
+    image: soldevelo/kafka:latest
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper-dev:2181
@@ -66,7 +66,7 @@ services:
       - "9092:9092"
 
   kafka-prod:
-    image: bitnami/kafka:latest
+    image: soldevelo/kafka:latest
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_ZOOKEEPER_CONNECT: zookeeper-prod:2181
