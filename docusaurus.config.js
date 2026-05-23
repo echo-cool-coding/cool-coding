@@ -35,7 +35,7 @@ const config = {
         },
     },
     title: '代码酷',
-    tagline: '免费好用的编程语言框架教程网站，学习编程就上代码酷！',
+    tagline: '免费的编程语言和框架教程网站',
     favicon: 'img/favicon.ico',
     themes: ['@docusaurus/theme-live-codeblock', '@docusaurus/theme-mermaid', 'docusaurus-theme-search-typesense'],
     // Set the production url of your site here
@@ -222,7 +222,7 @@ const config = {
             },
             announcementBar: {
                 id: "replay_announcement",
-                content: '喜欢这个项目吗？到 <a href="https://github.com/echo-cool-coding/cool-coding">GitHub</a> 给我们点个 ⭐ 支持一下吧！',
+                content: '到 <a href="https://github.com/echo-cool-coding/cool-coding">GitHub</a> 点个 ⭐ 支持一下吧！',
                 backgroundColor: "#312e81",
                 textColor: "#ffffff",
                 isCloseable: false,
