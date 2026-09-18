@@ -60,3 +60,20 @@
 
 [![Star History Chart](https://api.star-history.com/svg?repos=echo-cool-coding/cool-coding&type=Date)](https://www.star-history.com/#echo-cool-coding/cool-coding&Date)
 
+## 微信公众号悬浮窗 / 弹窗
+
+站点右下角的「关注公众号」悬浮窗和首次访问的二维码弹窗由 `src/components/WechatFollow` 渲染，
+在 `src/theme/Layout/index.js` 中挂载。所有文案与行为都在 `docusaurus.config.js` 的
+`customFields.wechat` 里配置：
+
+| 字段 | 说明 |
+| --- | --- |
+| `enabled` | 是否启用整个功能 |
+| `name` | 公众号名称，改名只需改这一项 |
+| `description` | 一句话介绍 |
+| `qrImage` | 二维码图片路径（相对 `static/`），替换 `static/img/wechat-qrcode.jpg` 即可换码 |
+| `floatLabel` | 悬浮按钮文字 |
+| `popupTitle` | 弹窗标题，`null` 时自动生成「关注「name」公众号」 |
+| `popup.enabled` / `popup.delayMs` / `popup.dismissDays` | 是否自动弹窗、延迟毫秒数、关闭后多少天内不再弹 |
+| `storageKey` | 记录「已关闭」的 localStorage 键名，`null` 时自动带上 `name`，因此改名后弹窗会重新展示一次 |
+

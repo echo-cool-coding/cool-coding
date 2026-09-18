@@ -14,6 +14,7 @@ import LayoutProvider from '@theme/Layout/Provider';
 import ErrorPageContent from '@theme/ErrorPageContent';
 import styles from './styles.module.css';
 import {PageMetaDataWithoutSiteName} from "../../components/PageMetaDataWithoutSiteName";
+import WechatFollow from "../../components/WechatFollow";
 export default function Layout(props) {
   const {
     children,
@@ -47,6 +48,9 @@ export default function Layout(props) {
           </div>
 
           {!noFooter && <Footer/>}
+
+          {/* 微信公众号悬浮窗 + 弹窗，文案/二维码见 docusaurus.config.js customFields.wechat */}
+          <WechatFollow/>
       </LayoutProvider>
   );
 }
