@@ -299,8 +299,8 @@ const config = {
                 respectPrefersColorScheme: true,
             },
             announcementBar: {
-                id: "replay_announcement",
-                content: '到 <a href="https://github.com/echo-cool-coding/cool-coding">GitHub</a> 点个 ⭐ 支持一下吧！',
+                id: "tencent_cloud_promo",
+                content: '<a href="https://curl.qcloud.com/QB8SyISS" target="_blank" rel="noopener noreferrer">想要实践部署？【腾讯云】2核2G4M 服务器新客99元/年起，AI 算力 0.8 折起，百万大模型 tokens 免费体验</a>',
                 backgroundColor: "#312e81",
                 textColor: "#ffffff",
                 isCloseable: false,
