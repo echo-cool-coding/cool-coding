@@ -200,6 +200,11 @@ const config = {
             crossorigin: 'anonymous',
         },
         {
+            src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7078440143664316',
+            async: true,
+            crossorigin: 'anonymous',
+        },
+        {
             src: 'https://hm.baidu.com/hm.js?1b165f68ccbfbd01c804c65a81779d58',
             async: true,
             crossorigin: 'anonymous',
