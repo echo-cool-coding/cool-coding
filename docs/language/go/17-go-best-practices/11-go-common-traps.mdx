@@ -372,8 +372,7 @@ func main() {
         
         userData.Visits++
         
-        fmt.Fprintf(w, "用户 %s 已访问 %d 次
-", username, userData.Visits)
+        fmt.Fprintf(w, "用户 %s 已访问 %d 次\n", username, userData.Visits)
     })
     
     // 陷阱3: 忽略错误处理

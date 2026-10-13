@@ -32,7 +32,7 @@ install.packages("rmarkdown")
 
 生成的模板文档如下：
 
-```markdown
+````markdown
 ---
 title: My First R Markdown Report
 author: "Your Name"
@@ -59,7 +59,7 @@ Here is a simple plot:
 ```{r}
 plot(cars)
 ```
-```
+````
 
 ### 解释
 - **YAML头部**：定义了文档的元数据，如标题、作者和输出格式。
@@ -74,7 +74,7 @@ plot(cars)
 
 让我们通过一个实际案例来展示R Markdown的强大功能。我们将使用R内置的 `mtcars` 数据集，生成一个包含描述性统计和可视化图表的报告。
 
-```markdown
+````markdown
 ---
 title: 汽车数据集分析报告
 author: "数据分析师"
@@ -113,7 +113,7 @@ plot(mtcars$mpg, mtcars$hp, main="油耗 vs 马力", xlab="油耗 (mpg)", ylab="
 ```{r}
 boxplot(mpg ~ cyl, data=mtcars, main="气缸数 vs 油耗", xlab="气缸数", ylab="油耗 (mpg)")
 ```
-```
+````
 
 ### 生成报告
 点击 `Knit` 按钮后，R Markdown会生成一个包含表格和图表的HTML报告。

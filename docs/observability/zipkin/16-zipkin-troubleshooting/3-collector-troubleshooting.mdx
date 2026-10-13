@@ -120,3 +120,14 @@ graph TD
 启用调试日志可获取更详细的信息：
 ```properties
 logging.level.zipkin2=DEBUG
+logging.level.zipkin=DEBUG
+```
+
+也可以在启动 Zipkin Server 时通过命令行参数临时开启，无需修改配置文件：
+
+```bash
+java -jar zipkin.jar --logging.level.zipkin2=DEBUG
+```
+
+排查结束后记得将日志级别恢复为 `INFO`，避免大量调试日志占用磁盘空间。
+:::

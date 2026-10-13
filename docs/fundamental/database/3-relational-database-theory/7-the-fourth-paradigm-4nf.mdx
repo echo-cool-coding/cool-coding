@@ -45,7 +45,6 @@ StudentCourses (StudentID, CourseName, TeacherName)
 | 1         | Physics    | Mr. Brown   |
 | 2         | Chemistry  | Ms. Davis   |
 | 2         | Chemistry  | Mr. Wilson  |
-```
 
 在这个表中，`StudentID` 决定了 `CourseName` 和 `TeacherName` 的多个值。例如，学生 1 选修了 Math 课程，而 Math 课程可以由 Mr. Smith 或 Ms. Johnson 教授。这就是一个多值依赖。
 
@@ -80,7 +79,6 @@ CourseTeachers (CourseName, TeacherName)
 | Physics    | Mr. Brown   |
 | Chemistry  | Ms. Davis   |
 | Chemistry  | Mr. Wilson  |
-```
 
 通过这种分解，我们消除了多值依赖，使得每个表都满足 4NF。
 

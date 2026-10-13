@@ -29,7 +29,7 @@ R Markdown 的核心思想是“可重复性”。你可以通过一个文档生
 
 以下是一个简单的 R Markdown 文件示例：
 
-```markdown
+````markdown
 ---
 title: 我的第一个 R Markdown 文档
 author: "你的名字"
@@ -53,7 +53,7 @@ library(ggplot2)
 ggplot(mpg, aes(x = displ, y = hwy)) +
   geom_point()
 ```
-```
+````
 
 ### 渲染文档
 
@@ -96,12 +96,12 @@ R Markdown 支持标准的 Markdown 语法，例如：
 
 R 代码块使用三个反引号包裹，并在开头指定语言为 `r`。你可以在代码块中编写 R 代码，并设置一些选项来控制代码块的执行和输出。
 
-```r
+````r
 ```{r echo=TRUE, warning=FALSE}
 # 这是一个 R 代码块
 summary(mpg)
 ```
-```
+````
 
 :::tip
 你可以通过设置代码块选项来控制代码块的输出。例如，`echo=FALSE` 可以隐藏代码，只显示结果；`warning=FALSE` 可以隐藏警告信息。
@@ -111,7 +111,7 @@ summary(mpg)
 
 假设你正在分析 `mpg` 数据集，并希望生成一个包含图表和统计摘要的报告。以下是一个简单的 R Markdown 文档示例：
 
-```markdown
+````markdown
 ---
 title: MPG 数据集分析报告
 author: "数据分析师"
@@ -146,7 +146,7 @@ ggplot(mpg, aes(x = hwy)) +
 ```{r}
 summary(mpg$hwy)
 ```
-```
+````
 
 渲染后，你将得到一个包含数据概览、图表和统计摘要的完整报告。
 

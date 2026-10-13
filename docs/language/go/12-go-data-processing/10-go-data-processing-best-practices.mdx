@@ -35,7 +35,7 @@ func main() {
 **输出：**
 ```
 Numbers: [1 2 3 4 5]
-User: map[name:Alice email:alice@example.com]
+User: map[email:alice@example.com name:Alice]
 ```
 
 :::tip
@@ -152,3 +152,147 @@ func main() {
 **输出：**
 ```
 Data length: 1024
+```
+
+:::caution
+放回`sync.Pool`的对象可能在任意一次垃圾回收时被清理，因此`sync.Pool`只适合缓存临时对象，不能用来保存需要长期存在的状态。
+:::
+
+### 使用`pprof`定位性能瓶颈
+
+在优化之前，应该先测量。Go标准库中的`runtime/pprof`包可以采集CPU性能数据，帮助你找到真正耗时的代码：
+
+```go
+package main
+
+import (
+    "log"
+    "os"
+    "runtime/pprof"
+    "strings"
+)
+
+func processData(lines []string) int {
+    count := 0
+    for _, line := range lines {
+        if strings.Contains(line, "error") {
+            count++
+        }
+    }
+    return count
+}
+
+func main() {
+    f, err := os.Create("cpu.prof")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer f.Close()
+
+    if err := pprof.StartCPUProfile(f); err != nil {
+        log.Fatal(err)
+    }
+    defer pprof.StopCPUProfile()
+
+    lines := make([]string, 0, 1000000)
+    for i := 0; i < 1000000; i++ {
+        lines = append(lines, "info: request ok")
+    }
+    log.Println("错误行数:", processData(lines))
+}
+```
+
+运行程序后，使用以下命令分析生成的性能数据：
+
+```bash
+go tool pprof cpu.prof
+```
+
+在交互界面中输入`top`可以查看耗时最多的函数。
+
+## 5. 实际案例：统计日志中的错误数量
+
+下面的示例综合运用了前面介绍的最佳实践：使用`bufio.Scanner`逐行读取数据以降低内存占用，使用映射统计结果，并对每一步进行显式错误处理。
+
+```go
+package main
+
+import (
+    "bufio"
+    "fmt"
+    "strings"
+)
+
+func countLevels(input string) (map[string]int, error) {
+    counts := make(map[string]int)
+    scanner := bufio.NewScanner(strings.NewReader(input))
+    for scanner.Scan() {
+        line := strings.TrimSpace(scanner.Text())
+        if line == "" {
+            continue
+        }
+        level, _, found := strings.Cut(line, ":")
+        if !found {
+            counts["UNKNOWN"]++
+            continue
+        }
+        counts[strings.ToUpper(level)]++
+    }
+    if err := scanner.Err(); err != nil {
+        return nil, err
+    }
+    return counts, nil
+}
+
+func main() {
+    logs := `info: 服务启动
+error: 数据库连接失败
+info: 收到请求
+error: 请求超时
+warn: 内存使用率较高`
+
+    counts, err := countLevels(logs)
+    if err != nil {
+        fmt.Println("处理失败:", err)
+        return
+    }
+    fmt.Println("INFO:", counts["INFO"])
+    fmt.Println("WARN:", counts["WARN"])
+    fmt.Println("ERROR:", counts["ERROR"])
+}
+```
+
+**输出：**
+```text
+INFO: 2
+WARN: 1
+ERROR: 2
+```
+
+:::tip
+处理大文件时，可以把`strings.NewReader`替换为`os.Open`返回的文件对象，`bufio.Scanner`会逐行读取，而不会一次性把整个文件加载到内存中。
+:::
+
+## 总结
+
+在Go中进行数据处理时，应遵循以下最佳实践：
+
+- **选择合适的数据结构**：有序数据使用切片，按键查找使用映射，复杂数据使用结构体。
+- **显式处理错误**：检查每一个返回的`error`，不要忽略错误。
+- **合理使用并发**：使用goroutine和channel并行处理数据，并注意避免goroutine泄漏。
+- **先测量再优化**：使用`pprof`找到瓶颈，再通过`sync.Pool`、预分配容量等手段减少内存分配。
+- **流式处理大数据**：使用`bufio`等工具逐行或分块读取，避免一次性加载全部数据。
+
+## 附加资源
+
+- [Go官方文档：sync包](https://pkg.go.dev/sync)
+- [Go官方文档：runtime/pprof包](https://pkg.go.dev/runtime/pprof)
+- [Go官方文档：bufio包](https://pkg.go.dev/bufio)
+- [Effective Go](https://go.dev/doc/effective_go)
+
+## 练习
+
+1. 修改错误处理示例，使用`fmt.Errorf`和`%w`包装错误，并使用`errors.Is`判断错误类型。
+2. 使用goroutine和channel并行统计多个日志字符串中的错误数量，并汇总结果。
+3. 为日志统计程序添加`pprof`性能分析，找出耗时最多的函数。
+4. 在切片追加数据前使用`make`预分配容量，比较预分配前后的性能差异。

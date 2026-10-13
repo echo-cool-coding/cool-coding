@@ -31,7 +31,7 @@ library(flexdashboard)
 
 让我们从一个简单的例子开始。以下是一个基本的 `flexdashboard` 模板：
 
-```r
+````r
 ---
 title: 我的第一个仪表板
 output: 
@@ -56,7 +56,7 @@ library(plotly)
 plot_ly(mpg, x = ~displ, y = ~hwy, type = "scatter", mode = "markers")
 ```
 
-```
+````
 
 在这个例子中，我们创建了一个包含两个图表的仪表板。第一个图表使用 `ggplot2` 绘制了一个散点图，第二个图表使用 `plotly` 创建了一个交互式散点图。
 
@@ -64,7 +64,7 @@ plot_ly(mpg, x = ~displ, y = ~hwy, type = "scatter", mode = "markers")
 
 `flexdashboard` 提供了多种布局选项，包括列布局、行布局和混合布局。以下是一个列布局的例子：
 
-```r
+````r
 ---
 title: 列布局示例
 output: 
@@ -88,7 +88,7 @@ plot_ly(mpg, x = ~class, y = ~hwy, type = "box") %>%
   layout(title = "不同车型的燃油效率（交互式）")
 ```
 
-```
+````
 
 在这个例子中，我们使用了列布局，将两个图表并排显示。
 
@@ -96,7 +96,7 @@ plot_ly(mpg, x = ~class, y = ~hwy, type = "box") %>%
 
 假设你正在分析一个销售数据集，并希望展示不同产品的销售情况。以下是一个实际案例：
 
-```r
+````r
 ---
 title: 销售数据分析仪表板
 output: 
@@ -129,7 +129,7 @@ plot_ly(sales_data, x = ~date, y = ~sales, type = "scatter", mode = "lines") %>%
   layout(title = "销售额趋势")
 ```
 
-```
+````
 
 在这个案例中，我们展示了总销售额、各产品销售额分布以及销售额趋势。
 

@@ -122,7 +122,6 @@ Result[] results = table.get(gets);
 1. 尝试在你的HBase集群中启用数据压缩，并观察存储空间和IO性能的变化。
 2. 调整BlockCache和MemStore的大小，测试不同配置下的读写性能。
 3. 实现批量写入和批量读取，比较与单条操作的性能差异。
-```
 
 ```mermaid
 graph TD
@@ -132,3 +131,4 @@ graph TD
     D --> F[MemStore]
     G[读写路径优化] --> H[批量写入]
     G --> I[批量读取]
+```

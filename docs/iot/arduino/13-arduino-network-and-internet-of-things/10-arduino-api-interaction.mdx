@@ -129,3 +129,142 @@ void controlHeater(float temperature) {
     Serial.println("Heater OFF");
   }
 }
+```
+
+### 完整示例
+
+下面的代码把前面的内容组合在一起：每 5 分钟请求一次天气 API，解析返回的 JSON 中的温度字段，然后根据温度控制加热器。这里假设 API 返回的数据格式为 `{"temperature": 18.5}`，实际使用时需要根据你所用 API 的文档调整字段名。
+
+```cpp
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+#include <ArduinoJson.h>
+
+const char* ssid = "your_SSID";
+const char* password = "your_PASSWORD";
+const char* apiUrl = "http://api.example.com/weather"; // 替换为实际的 API 端点
+
+const int HEATER_PIN = D1;                       // 连接继电器的引脚
+const unsigned long INTERVAL = 5UL * 60UL * 1000UL; // 5 分钟
+unsigned long lastRequest = 0;
+
+void controlHeater(float temperature) {
+  if (temperature < 20.0) {
+    digitalWrite(HEATER_PIN, HIGH); // 打开加热器
+    Serial.println("Heater ON");
+  } else {
+    digitalWrite(HEATER_PIN, LOW); // 关闭加热器
+    Serial.println("Heater OFF");
+  }
+}
+
+bool fetchTemperature(float &temperature) {
+  WiFiClient client;
+  HTTPClient http;
+
+  if (!http.begin(client, apiUrl)) {
+    Serial.println("Unable to connect");
+    return false;
+  }
+
+  int httpCode = http.GET();
+  if (httpCode != HTTP_CODE_OK) {
+    Serial.print("HTTP error: ");
+    Serial.println(httpCode);
+    http.end();
+    return false;
+  }
+
+  String payload = http.getString();
+  http.end();
+
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, payload);
+  if (error) {
+    Serial.print("deserializeJson() failed: ");
+    Serial.println(error.c_str());
+    return false;
+  }
+
+  if (!doc.containsKey("temperature")) {
+    Serial.println("Field 'temperature' not found");
+    return false;
+  }
+
+  temperature = doc["temperature"].as<float>();
+  return true;
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(HEATER_PIN, OUTPUT);
+  digitalWrite(HEATER_PIN, LOW);
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
+}
+
+void loop() {
+  unsigned long now = millis();
+  if (lastRequest == 0 || now - lastRequest >= INTERVAL) {
+    lastRequest = now;
+
+    if (WiFi.status() == WL_CONNECTED) {
+      float temperature;
+      if (fetchTemperature(temperature)) {
+        Serial.print("Temperature: ");
+        Serial.println(temperature);
+        controlHeater(temperature);
+      }
+    } else {
+      Serial.println("WiFi disconnected");
+    }
+  }
+}
+```
+
+### 代码解释
+
+1. **定时请求**：使用 `millis()` 代替 `delay()` 实现每 5 分钟请求一次，这样 `loop()` 不会被阻塞，可以同时处理其他任务。
+2. **错误处理**：只有在 HTTP 状态码为 200 且 JSON 解析成功时才更新温度，避免因网络故障或数据异常误操作加热器。
+3. **安全默认值**：启动时先将加热器关闭，确保设备在获取到有效数据之前处于安全状态。
+
+:::caution
+加热器等大功率设备不能直接连接到 Arduino 引脚，必须通过继电器模块或其他驱动电路控制，并注意市电接线安全。
+:::
+
+## 与 API 交互的注意事项
+
+- **请求频率**：许多公共 API 有调用次数限制，请根据 API 文档设置合理的请求间隔。
+- **API 密钥**：不要把 API 密钥直接提交到公开的代码仓库中，可以放在单独的头文件中并加入 `.gitignore`。
+- **HTTPS**：很多 API 只支持 HTTPS。在 ESP8266/ESP32 上可以使用 `WiFiClientSecure` 建立加密连接。
+- **内存限制**：Arduino 内存有限，应尽量让 API 只返回需要的字段，并为 JSON 文档分配合适的容量。
+
+## 总结
+
+本文介绍了 Arduino 与 API 交互的基本流程：
+
+- 使用 `HTTPClient` 向 API 端点发送 HTTP 请求
+- 使用 `ArduinoJson` 库解析返回的 JSON 数据
+- 根据解析结果执行控制逻辑，例如开关加热器
+- 通过定时请求和错误处理提高程序的稳定性
+
+掌握这些技能后，你就可以让 Arduino 设备接入各种在线服务，构建功能更丰富的物联网应用。
+
+## 附加资源与练习
+
+### 练习
+
+1. 修改完整示例，使加热器在温度高于 22°C 时才关闭，实现带回差的温度控制，避免频繁开关。
+2. 选择一个真实的天气 API，按照其文档修改请求地址和 JSON 字段解析代码。
+3. 使用 `HTTPClient` 的 `POST()` 方法，将本地传感器数据以 JSON 格式发送到服务器。
+
+### 资源
+
+- [ArduinoJson 官方文档](https://arduinojson.org/)
+- [ESP8266 Arduino Core 文档](https://arduino-esp8266.readthedocs.io/)

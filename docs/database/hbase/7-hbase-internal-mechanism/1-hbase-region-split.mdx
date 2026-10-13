@@ -76,7 +76,6 @@ Region 分裂是 HBase 中一个重要的机制，它通过将过大的 Region �
 1. 尝试在本地 HBase 环境中手动触发 Region 分裂，并观察分裂前后的 Region 分布情况。
 2. 调整 HBase 的 Region 分裂阈值，观察对系统性能的影响。
 3. 研究 HBase 的负载均衡机制，了解 Region 分裂如何与负载均衡协同工作。
-```
 
 ```mermaid
 graph TD
@@ -84,3 +83,4 @@ graph TD
     B --> C[创建新的 Region]
     C --> D[更新元数据]
     D --> E[分配 Region 到 RegionServer]
+```

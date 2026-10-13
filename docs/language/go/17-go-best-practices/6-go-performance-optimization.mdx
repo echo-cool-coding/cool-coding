@@ -474,8 +474,7 @@ func ProcessLargeFile(filename string) (Result, error) {
     }
     
     // 处理数据
-    lines := bytes.Split(data, []byte("
-"))
+    lines := bytes.Split(data, []byte("\n"))
     var results []LineResult
     
     for _, line := range lines {

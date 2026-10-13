@@ -93,3 +93,192 @@ func main() {
 
 ### 输出结果
 
+```text
+压缩后的数据: [31 139 8 0 0 0 0 0 0 255 ...]
+解压缩后的数据: 这是一个需要压缩的字符串。
+```
+
+压缩后的字节以`31 139`开头，这是GZIP格式的固定魔数。其余字节因数据内容而异，这里用`...`省略。
+
+:::caution
+必须在读取`buf`之前调用`gz.Close()`。`Close`会把缓冲区中剩余的数据和GZIP尾部（校验和与长度）写入`buf`，否则得到的压缩数据是不完整的，解压时会报错。
+:::
+
+:::tip
+对于很短的字符串，压缩后的数据可能比原始数据还大，因为GZIP格式本身包含头部和尾部信息。压缩通常在数据量较大、重复内容较多时才有明显效果。
+:::
+
+---
+
+## 使用`zlib`压缩数据
+
+`zlib`格式与`gzip`都基于DEFLATE算法，只是头部和校验方式不同。它的用法与`gzip`几乎一致：
+
+```go
+package main
+
+import (
+    "bytes"
+    "compress/zlib"
+    "fmt"
+    "io"
+    "strings"
+)
+
+func main() {
+    data := strings.Repeat("Go语言数据压缩示例。", 100)
+
+    // 压缩
+    var buf bytes.Buffer
+    w := zlib.NewWriter(&buf)
+    if _, err := w.Write([]byte(data)); err != nil {
+        fmt.Println("压缩失败:", err)
+        return
+    }
+    if err := w.Close(); err != nil {
+        fmt.Println("关闭zlib写入器失败:", err)
+        return
+    }
+    fmt.Printf("原始大小: %d 字节，压缩后大小: %d 字节\n", len(data), buf.Len())
+
+    // 解压缩
+    r, err := zlib.NewReader(&buf)
+    if err != nil {
+        fmt.Println("创建zlib读取器失败:", err)
+        return
+    }
+    defer r.Close()
+
+    result, err := io.ReadAll(r)
+    if err != nil {
+        fmt.Println("解压缩失败:", err)
+        return
+    }
+    fmt.Println("解压缩结果与原始数据一致:", string(result) == data)
+}
+```
+
+由于示例数据中包含大量重复内容，压缩后的大小会远小于原始大小，程序最后会输出`解压缩结果与原始数据一致: true`。
+
+---
+
+## 调整压缩级别
+
+`gzip`、`zlib`和`flate`都支持设置压缩级别。级别越高，压缩率越高，但耗时也越长：
+
+- `gzip.NoCompression`：不压缩
+- `gzip.BestSpeed`：速度最快
+- `gzip.BestCompression`：压缩率最高
+- `gzip.DefaultCompression`：默认级别，在速度和压缩率之间取得平衡
+
+```go
+gz, err := gzip.NewWriterLevel(&buf, gzip.BestCompression)
+if err != nil {
+    fmt.Println("无效的压缩级别:", err)
+    return
+}
+defer gz.Close()
+```
+
+---
+
+## 实际案例：压缩和解压缩文件
+
+在实际项目中，我们经常需要压缩日志文件或备份文件。下面的示例将一个文件压缩为`.gz`文件，再把它解压出来：
+
+```go
+package main
+
+import (
+    "compress/gzip"
+    "fmt"
+    "io"
+    "os"
+)
+
+// compressFile 将src文件压缩为dst（.gz）文件
+func compressFile(src, dst string) error {
+    in, err := os.Open(src)
+    if err != nil {
+        return err
+    }
+    defer in.Close()
+
+    out, err := os.Create(dst)
+    if err != nil {
+        return err
+    }
+    defer out.Close()
+
+    gz := gzip.NewWriter(out)
+    gz.Name = src // 在GZIP头部记录原始文件名
+
+    if _, err := io.Copy(gz, in); err != nil {
+        gz.Close()
+        return err
+    }
+    return gz.Close()
+}
+
+// decompressFile 将src（.gz）文件解压为dst文件
+func decompressFile(src, dst string) error {
+    in, err := os.Open(src)
+    if err != nil {
+        return err
+    }
+    defer in.Close()
+
+    gz, err := gzip.NewReader(in)
+    if err != nil {
+        return err
+    }
+    defer gz.Close()
+
+    out, err := os.Create(dst)
+    if err != nil {
+        return err
+    }
+    defer out.Close()
+
+    _, err = io.Copy(out, gz)
+    return err
+}
+
+func main() {
+    if err := compressFile("app.log", "app.log.gz"); err != nil {
+        fmt.Println("压缩文件失败:", err)
+        return
+    }
+    fmt.Println("压缩完成: app.log.gz")
+
+    if err := decompressFile("app.log.gz", "app_restored.log"); err != nil {
+        fmt.Println("解压文件失败:", err)
+        return
+    }
+    fmt.Println("解压完成: app_restored.log")
+}
+```
+
+使用`io.Copy`以流的方式处理数据，即使文件很大，也不需要把整个文件读入内存。生成的`.gz`文件可以直接用`gunzip`等命令行工具解压。
+
+---
+
+## 总结
+
+- Go标准库提供了`compress/gzip`、`compress/zlib`和`compress/flate`等包，它们都基于DEFLATE算法实现无损压缩。
+- 压缩时通过写入器（Writer）写入数据，并且必须调用`Close`方法确保数据完整写出。
+- 解压时通过读取器（Reader）读取数据，可以配合`io.Copy`或`io.ReadAll`使用。
+- 可以使用`NewWriterLevel`在压缩速度和压缩率之间进行权衡。
+- 处理大文件时，应使用流式读写，避免一次性加载全部数据。
+
+## 附加资源
+
+- [Go官方文档：compress/gzip](https://pkg.go.dev/compress/gzip)
+- [Go官方文档：compress/zlib](https://pkg.go.dev/compress/zlib)
+- [Go官方文档：compress/flate](https://pkg.go.dev/compress/flate)
+
+## 练习
+
+1. 修改`gzip`示例，比较`gzip.BestSpeed`和`gzip.BestCompression`两种级别下压缩后数据的大小。
+2. 编写一个程序，将一个目录下的所有`.log`文件分别压缩为`.gz`文件。
+3. 编写一个简单的HTTP服务器，当客户端请求头中包含`Accept-Encoding: gzip`时，使用`gzip`压缩响应内容。

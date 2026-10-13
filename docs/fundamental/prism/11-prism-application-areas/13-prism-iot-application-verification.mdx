@@ -103,4 +103,12 @@ strategy "defense" = min(R{"time"}[F detected])
 :::tip 实验建议
 使用PRISM的`simulator`模式观察单个运行轨迹，帮助理解概率行为的实际表现：
 ```bash
-prism -sim -simpath 1000 model.pm
+prism model.pm -simpath 1000 path.txt
+```
+
+该命令会从初始状态出发随机生成一条长度为 1000 步的执行路径，并将其写入 `path.txt`，便于逐步检查状态变化。
+:::
+
+### 延伸阅读
+- [PRISM 官方手册](https://www.prismmodelchecker.org/manual/)
+- PRISM 案例库中的无线传感器网络与通信协议相关案例

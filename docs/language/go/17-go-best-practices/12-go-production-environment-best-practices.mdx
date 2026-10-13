@@ -43,8 +43,7 @@ func main() {
         dbPort = 5432 // 默认端口
     }
     
-    fmt.Printf("连接到数据库: %s:%d
-", dbHost, dbPort)
+    fmt.Printf("连接到数据库: %s:%d\n", dbHost, dbPort)
 }
 ```
 
@@ -73,15 +72,13 @@ func main() {
     
     err := viper.ReadInConfig()
     if err != nil {
-        fmt.Printf("无法读取配置文件: %v
-", err)
+        fmt.Printf("无法读取配置文件: %v\n", err)
     }
     
     dbHost := viper.GetString("database.host")
     dbPort := viper.GetInt("database.port")
     
-    fmt.Printf("连接到数据库: %s:%d
-", dbHost, dbPort)
+    fmt.Printf("连接到数据库: %s:%d\n", dbHost, dbPort)
 }
 ```
 
@@ -809,20 +806,17 @@ func main() {
     // 测试串行处理
     start := time.Now()
     results1 := processItemsSerial(items)
-    fmt.Printf("串行处理耗时: %v
-", time.Since(start))
+    fmt.Printf("串行处理耗时: %v\n", time.Since(start))
     
     // 测试简单并行处理
     start = time.Now()
     results2 := processItemsParallel(items)
-    fmt.Printf("简单并行处理耗时: %v
-", time.Since(start))
+    fmt.Printf("简单并行处理耗时: %v\n", time.Since(start))
     
     // 测试工作池模式
     start = time.Now()
     results3 := processItemsWithWorkerPool(items, 10)
-    fmt.Printf("工作池处理耗时: %v
-", time.Since(start))
+    fmt.Printf("工作池处理耗时: %v\n", time.Since(start))
     
     // 验证结果一致性
     fmt.Println("所有结果一致:", len(results1) == len(results2) && len(results2) == len(results3))
@@ -1013,4 +1007,121 @@ func sanitizeSQL(input string) string {
 func handleUserRegistration(w http.ResponseWriter, r *http.Request) {
     // 必须使用POST方法
     if r.Method != http.MethodPost {
-        http.Error(w, "
+        http.Error(w, "只支持POST方法", http.StatusMethodNotAllowed)
+        return
+    }
+
+    // 限制请求体大小，防止恶意的超大请求
+    r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+    if err := r.ParseForm(); err != nil {
+        http.Error(w, "无效的请求数据", http.StatusBadRequest)
+        return
+    }
+
+    email := strings.TrimSpace(r.FormValue("email"))
+    phone := strings.TrimSpace(r.FormValue("phone"))
+
+    if !validateEmail(email) {
+        http.Error(w, "无效的电子邮件地址", http.StatusBadRequest)
+        return
+    }
+    if !validatePhone(phone) {
+        http.Error(w, "无效的手机号", http.StatusBadRequest)
+        return
+    }
+
+    age, err := safeParseInt(r.FormValue("age"))
+    if err != nil || age < 0 || age > 150 {
+        http.Error(w, "无效的年龄", http.StatusBadRequest)
+        return
+    }
+
+    // 不要把内部错误细节返回给客户端
+    fmt.Fprintf(w, "注册成功：%s\n", email)
+}
+
+func main() {
+    http.HandleFunc("/register", handleUserRegistration)
+    http.ListenAndServe(":8080", nil)
+}
+```
+
+:::caution
+字符串替换无法可靠地防止SQL注入。访问数据库时，始终使用参数化查询，例如`db.Query("SELECT * FROM users WHERE email = ?", email)`，让数据库驱动负责处理参数。
+:::
+
+### 使用HTTPS和安全的超时设置
+
+生产环境中不要直接使用`http.ListenAndServe`的默认配置。默认的`http.Server`没有设置超时时间，容易受到慢速连接攻击。应显式配置超时，并启用TLS：
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+    "time"
+)
+
+func main() {
+    mux := http.NewServeMux()
+    mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("Hello, HTTPS!"))
+    })
+
+    server := &http.Server{
+        Addr:              ":8443",
+        Handler:           mux,
+        ReadHeaderTimeout: 5 * time.Second,
+        ReadTimeout:       10 * time.Second,
+        WriteTimeout:      10 * time.Second,
+        IdleTimeout:       120 * time.Second,
+    }
+
+    log.Fatal(server.ListenAndServeTLS("server.crt", "server.key"))
+}
+```
+
+### 依赖安全检查
+
+第三方依赖中的漏洞同样会影响你的应用。Go官方提供了`govulncheck`工具，可以扫描项目中实际调用到的已知漏洞：
+
+```bash
+go install golang.org/x/vuln/cmd/govulncheck@latest
+govulncheck ./...
+```
+
+建议在CI流水线中运行该工具，并定期使用`go get -u`和`go mod tidy`更新依赖。
+
+## 生产环境检查清单
+
+在将Go应用部署到生产环境之前，可以对照以下清单进行检查：
+
+- **配置**：所有配置通过环境变量或配置文件注入，代码中没有硬编码的密码和密钥。
+- **日志**：使用结构化日志，并按环境设置合适的日志级别。
+- **错误处理**：所有错误都被处理和记录，不向客户端暴露内部错误细节。
+- **监控**：提供健康检查接口，暴露关键指标，并接入分布式追踪。
+- **性能**：对热点数据使用缓存，对数据库连接等资源进行池化，并发任务有数量限制。
+- **部署**：使用多阶段构建生成精简的Docker镜像，在Kubernetes中配置资源限制和探针。
+- **安全**：验证所有用户输入，使用参数化查询，启用HTTPS并设置超时，定期扫描依赖漏洞。
+
+## 总结
+
+将Go应用部署到生产环境不仅仅是编译并运行一个二进制文件。本文介绍了配置管理、日志记录、错误处理、监控和可观测性、性能优化、容器化部署以及安全等方面的最佳实践。遵循这些实践，可以让你的应用在生产环境中更加稳定、可观测且易于维护。
+
+建议从最基础的几项开始实践：外部化配置、结构化日志和健康检查，然后再逐步引入指标收集、分布式追踪等更高级的能力。
+
+## 附加资源
+
+- [Go官方文档](https://go.dev/doc/)
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Go安全最佳实践](https://go.dev/doc/security/best-practices)
+- [govulncheck漏洞检查工具](https://go.dev/doc/security/vuln/)
+
+## 练习
+
+1. 为一个简单的HTTP服务添加从环境变量读取配置的功能，并为缺失的配置提供合理的默认值。
+2. 使用`log/slog`为服务添加结构化日志，并支持通过环境变量切换日志级别。
+3. 实现`/healthz`健康检查接口，在数据库连接不可用时返回`503`状态码。
+4. 为服务编写多阶段构建的Dockerfile，并比较最终镜像与单阶段构建镜像的大小。
+5. 在项目中运行`govulncheck ./...`，检查是否存在已知漏洞。

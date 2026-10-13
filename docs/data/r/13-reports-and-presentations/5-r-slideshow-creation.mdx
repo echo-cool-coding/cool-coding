@@ -95,7 +95,7 @@ rmarkdown::render("my_xaringan_slides.Rmd")
 
 假设你正在分析一组汽车数据，并希望将分析结果展示给团队。你可以使用 `xaringan` 创建一个包含数据摘要和可视化图表的幻灯片。
 
-```markdown
+````markdown
 ---
 title: 汽车数据分析
 output: xaringan::moon_reader
@@ -114,7 +114,7 @@ summary(cars)
 ```{r}
 plot(cars$speed, cars$dist, main = "速度 vs 刹车距离", xlab = "速度", ylab = "刹车距离")
 ```
-```
+````
 
 ## 总结
 

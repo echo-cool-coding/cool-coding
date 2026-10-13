@@ -102,21 +102,25 @@ sum by (level) (
 )
 ```
 
-### 示例：请求延迟直方图
+### 示例：请求延迟分位数
 
-假设日志中包含请求延迟字段`latency`，可以生成延迟直方图：
+假设日志中包含以秒为单位的请求延迟字段`latency`，可以用 `unwrap` 提取数值，再用 `quantile_over_time` 计算每分钟的 P99 延迟：
 
 ```logql
-histogram_over_time(
-  {job="myapp"} | json | latency [1m]
-)
+quantile_over_time(0.99,
+  {job="myapp"} | json | unwrap latency [1m]
+) by (job)
 ```
+
+:::note
+LogQL 没有 `histogram_over_time` 函数。需要分布信息时，可以分别计算多个分位数（如 0.5、0.9、0.99），或在 Grafana 中对查询结果使用直方图面板。
+:::
 
 ## 性能优化技巧
 
 ### 使用标签索引
 
-确保日志流使用高基数标签（如`job`、`level`）索引，避免低基数标签（如`ip`、`user_id`）导致性能下降。
+Loki 只为标签建立索引，因此应使用取值较少的低基数标签（如`job`、`level`）区分日志流，避免把高基数字段（如`ip`、`user_id`）设为标签——它们会产生大量日志流，导致性能下降。这类字段应在查询时通过解析器（如 `| json`）过滤。
 
 ### 限制查询范围
 
@@ -154,3 +158,61 @@ sum by (service) (
 
 ```logql
 {job="mysql"} | json | latency>1s | line_format "{{.query}} ({{.latency}}s)"
+```
+
+如果想统计每个数据库每分钟出现的慢查询数量，可以在此基础上做聚合：
+
+```logql
+sum by (database) (
+  count_over_time(
+    {job="mysql"} | json | latency > 1s [1m]
+  )
+)
+```
+
+### 案例3：计算接口P99延迟
+
+使用`unwrap`将日志中的字段转换为样本值，再配合`quantile_over_time`计算分位数。`duration()`会把`250ms`、`1.5s`这类字符串解析为秒：
+
+```logql
+quantile_over_time(0.99,
+  {job="myapp"} | json | unwrap duration(latency) [5m]
+) by (path)
+```
+
+结合`topk`可以找出延迟最高的5个接口：
+
+```logql
+topk(5,
+  quantile_over_time(0.99,
+    {job="myapp"} | json | unwrap duration(latency) [5m]
+  ) by (path)
+)
+```
+
+:::tip
+使用`unwrap`时，如果某些日志行的字段无法转换为数字，会产生`__error__`标签。可以在`unwrap`之后追加`| __error__=""`过滤掉这些日志行，避免查询报错。
+:::
+
+## 总结
+
+本文介绍了LogQL的一系列高级技巧：
+
+- **日志解析**：使用`json`、`logfmt`、`pattern`和`regexp`解析器把非结构化日志转换为可查询的字段。
+- **模式匹配**：组合标签选择器、行过滤器（`|=`、`!=`、`|~`、`!~`）和标签过滤器精确定位日志。
+- **指标提取**：通过`count_over_time`、`rate`以及`unwrap`配合`quantile_over_time`等函数，将日志转换为可用于告警和仪表盘的指标。
+- **性能优化**：先用标签选择器缩小日志流范围，再进行行过滤，最后才做解析和格式化。
+
+掌握这些技巧后，你可以直接在Loki中完成大部分日志分析工作，而无需将日志导出到其他系统。
+
+## 练习
+
+1. 编写一个查询，统计过去5分钟内每个`service`的错误日志数量，并按数量从高到低取前3名。
+2. 对一条格式为`method=GET path=/api/users duration=120ms`的日志，使用`logfmt`解析器提取字段，并计算每个`path`的平均耗时。
+3. 使用`line_format`将JSON日志格式化为`[级别] 消息`的形式输出。
+
+## 延伸阅读
+
+- [LogQL官方文档](https://grafana.com/docs/loki/latest/query/)
+- [日志查询（Log queries）](https://grafana.com/docs/loki/latest/query/log_queries/)
+- [指标查询（Metric queries）](https://grafana.com/docs/loki/latest/query/metric_queries/)

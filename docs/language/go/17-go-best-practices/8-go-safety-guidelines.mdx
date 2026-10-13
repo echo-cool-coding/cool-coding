@@ -570,8 +570,7 @@ func main() {
 ```go
 func worker(id int, jobs <-chan int, results chan<- int) {
     for j := range jobs {
-        fmt.Printf("Worker %d processing job %d
-", id, j)
+        fmt.Printf("Worker %d processing job %d\n", id, j)
         // 模拟工作
         time.Sleep(time.Second)
         results <- j * 2

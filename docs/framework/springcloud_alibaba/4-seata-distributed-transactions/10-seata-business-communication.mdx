@@ -80,10 +80,15 @@ Seata的事务传播机制为分布式事务管理提供了灵活性和可靠性
 
 1. 尝试在本地环境中配置Seata，并使用不同的传播行为测试事务的执行和回滚。
 2. 修改上述代码示例，使用 `NESTED` 传播行为，观察事务的行为变化。
-```
 
 ```mermaid
 graph TD
     A[OrderService.placeOrder] -->|调用| B[InventoryService.reduceStock]
     B -->|REQUIRES_NEW| C[新事务]
     A -->|全局事务| D[全局事务]
+    D -->|包含| C
+    C -->|独立提交| E[库存已扣减]
+    D -->|下游异常| F[全局回滚]
+```
+
+上图展示了示例中两个方法之间的事务关系：`placeOrder` 开启全局事务，`reduceStock` 以 `REQUIRES_NEW` 方式在新的本地事务中执行。需要注意，`REQUIRES_NEW` 的本地事务会独立提交，如果希望库存扣减在全局事务失败时也能一起回滚，应让它参与同一个全局事务（使用默认的 `REQUIRED` 传播行为），由 Seata 的 undo log 统一回滚。

@@ -100,10 +100,10 @@ jaeger_collector:
 ### 资源推荐
 - [Jaeger官方文档 - 性能调优](https://www.jaegertracing.io/docs/latest/performance-tuning/)
 - 《分布式系统追踪实践》第4章
-``` 
 
 ```mermaid
 graph LR
   A[Jaeger Agent] -->|写入队列| B[Queue]
   B -->|批量处理| C[Jaeger Collector]
   C -->|缓冲| D[Storage]
+```

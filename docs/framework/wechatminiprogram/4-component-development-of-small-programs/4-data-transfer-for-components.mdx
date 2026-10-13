@@ -133,3 +133,97 @@ Component({
 <input placeholder="Name" bindinput="onNameInput" />
 <input placeholder="Email" bindinput="onEmailInput" />
 <button bindtap="onSubmit">Submit</button>
+```
+
+在这个例子中，子组件内部维护 `name` 和 `email` 两个字段，用户点击提交按钮时，通过 `triggerEvent('submit', ...)` 把表单数据一次性传给父组件。父组件只需要监听 `submit` 事件即可拿到完整的表单数据，无需关心表单内部的实现细节。
+
+## 父组件直接获取子组件实例
+
+除了属性和事件，父组件还可以通过 `this.selectComponent` 获取子组件实例，直接读取子组件的数据或调用子组件的方法。这种方式适合父组件需要主动控制子组件的场景，例如重置表单。
+
+**父组件 (parent.wxml):**
+```xml
+<form-component id="myForm" bindsubmit="onFormSubmit"></form-component>
+<button bindtap="resetForm">重置表单</button>
+```
+
+**子组件 (form.js) 中新增方法:**
+```javascript
+Component({
+  data: {
+    name: '',
+    email: ''
+  },
+  methods: {
+    reset() {
+      this.setData({ name: '', email: '' });
+    }
+  }
+});
+```
+
+**父组件 (parent.js):**
+```javascript
+Page({
+  resetForm() {
+    const form = this.selectComponent('#myForm');
+    console.log(form.data.name); // 读取子组件当前的数据
+    form.reset();                // 调用子组件的方法
+  }
+});
+```
+
+:::caution
+`selectComponent` 会让父组件依赖子组件的内部实现，耦合度较高。优先使用属性和事件进行通信，只有在确实需要时才直接操作子组件实例。
+:::
+
+## 监听属性变化
+
+当父组件传入的属性发生变化时，子组件可以使用 `observers` 字段进行监听，从而在数据更新时执行相应逻辑。
+
+```javascript
+Component({
+  properties: {
+    message: {
+      type: String,
+      value: ''
+    }
+  },
+  observers: {
+    'message': function(newValue) {
+      console.log('message 已更新为：', newValue);
+    }
+  }
+});
+```
+
+## 数据流向示意
+
+```mermaid
+graph LR
+    A[父组件] -->|properties 属性| B[子组件]
+    B -->|triggerEvent 事件| A
+    A -->|selectComponent 实例| B
+```
+
+## 总结
+
+小程序组件之间的数据传递主要有以下几种方式：
+
+1. **属性（properties）**：父组件向子组件传递数据，是最常用的方式。
+2. **事件（triggerEvent）**：子组件向父组件传递数据，父组件通过 `bind事件名` 监听。
+3. **组件实例（selectComponent）**：父组件直接获取子组件实例，读取数据或调用方法。
+4. **数据监听（observers）**：子组件监听属性变化，及时响应父组件传入的新数据。
+
+掌握这些方式后，就可以构建结构清晰、职责单一、易于复用的组件。
+
+## 附加资源
+
+- [微信官方文档 - 组件间通信与事件](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/events.html)
+- [微信官方文档 - 数据监听器](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/observer.html)
+
+## 练习
+
+1. 编写一个计数器组件，父组件通过属性传入初始值，子组件每次点击按钮后通过事件将最新值传回父组件。
+2. 在表单组件中增加校验逻辑：当邮箱格式不正确时，子组件触发一个 `error` 事件通知父组件。
+3. 使用 `selectComponent` 在父页面中实现“一键清空”功能，清空多个子组件中的输入内容。
