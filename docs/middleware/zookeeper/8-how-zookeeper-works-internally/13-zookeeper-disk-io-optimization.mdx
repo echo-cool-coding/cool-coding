@@ -1,9 +1,10 @@
 ---
-title: Zookeeper 磁盘IO优化
+title: "Zookeeper 磁盘IO优化（Zookeeper 内部原理）"
+sidebar_label: "Zookeeper 磁盘IO优化"
 description: "了解 Zookeeper 中磁盘IO优化的核心概念、实现方法及其在实际场景中的应用。"
 ---
 
-# Zookeeper 磁盘IO优化
+# Zookeeper 磁盘IO优化（Zookeeper 内部原理）
 
 Zookeeper 是一个分布式协调服务，广泛用于分布式系统中的配置管理、命名服务、分布式锁等场景。由于 Zookeeper 需要频繁地将数据写入磁盘以确保数据的一致性和持久性，磁盘IO性能成为影响其整体性能的关键因素之一。本文将详细介绍 Zookeeper 磁盘IO优化的核心概念、实现方法及其在实际场景中的应用。
 

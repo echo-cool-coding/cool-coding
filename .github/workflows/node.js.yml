@@ -23,6 +23,9 @@ jobs:
           # incremental builds reuse the cache (rspackPersistentCache +
           # mdxCrossCompilerCache), so only changed docs are recompiled.
           clean: false
+          # Full history so sitemap lastmod reflects each page's real last edit
+          # instead of the latest commit date for every URL.
+          fetch-depth: 0
       - name: Install dependencies
         run: npm install
       - name: Build
