@@ -1,0 +1,20 @@
+{{- $f := site.Data.site.footer }}
+<footer class="theme-layout-footer footer footer--{{ $f.style | default "dark" }}">
+  <div class="container container-fluid">
+    <div class="row footer__links">
+      {{- range $f.links }}
+      <div class="theme-layout-footer-column col footer__col">
+        <div class="footer__title">{{ .title }}</div>
+        <ul class="footer__items clean-list">
+          {{- range .items }}
+          {{- $u := partial "navlink.html" . }}
+          {{- $external := or .href (hasPrefix $u "http") }}
+          <li class="footer__item"><a class="footer__link-item" href="{{ $u }}"{{ if $external }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .label }}{{ if $external }}<svg width="13.5" height="13.5" aria-hidden="true" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg>{{ end }}</a></li>
+          {{- end }}
+        </ul>
+      </div>
+      {{- end }}
+    </div>
+    <div class="footer__bottom text--center"><div class="footer__copyright">{{ $f.copyright | safeHTML }}</div></div>
+  </div>
+</footer>

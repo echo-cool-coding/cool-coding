@@ -1,0 +1,78 @@
+name: Build with Hugo and deploy to GitHub Pages
+
+# Replaces the Docusaurus build (node.js.yml, now manual-only and kept for rollback).
+# Pull requests build and check the site without deploying it.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # One Pages deployment at a time (shared with the Docusaurus rollback workflow); PR builds run separately.
+  group: ${{ github.event_name == 'pull_request' && format('hugo-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build Hugo site
+    # Hugo needs ~3 GB of memory and a few minutes, so a GitHub-hosted runner is enough.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HUGO_VERSION: 0.154.5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # full history: sitemap lastmod is each page's last commit date
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install PyYAML, Pagefind and Hugo
+        run: |
+          pip install pyyaml
+          npm ci --prefix hugo
+          curl -sSL -o "$RUNNER_TEMP/hugo.tar.gz" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          mkdir -p "$RUNNER_TEMP/hugo" && tar -xzf "$RUNNER_TEMP/hugo.tar.gz" -C "$RUNNER_TEMP/hugo"
+          "$RUNNER_TEMP/hugo/hugo" version
+
+      - name: Build
+        env:
+          HUGO_ENVIRONMENT: production
+        run: HUGO="$RUNNER_TEMP/hugo/hugo" hugo/scripts/build.sh
+
+      - name: Check the build
+        run: hugo/scripts/check_build.sh
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: hugo/public
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

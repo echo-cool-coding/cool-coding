@@ -1,0 +1,9 @@
+{{- /* Search dialog opened by the navbar DocSearch button or Ctrl/Cmd+K, backed by Pagefind. */ -}}
+{{- $b := site.Params.pagefindBundle | default "/pagefind/" }}
+<div class="cnr-search" hidden data-search-modal data-bundle="{{ $b }}">
+  <div class="cnr-search__backdrop" data-search-close></div>
+  <div class="cnr-search__dialog" role="dialog" aria-modal="true" aria-label="搜索">
+    <div id="cnr-search-ui"></div>
+    <div class="cnr-search__footer">搜索由 <a href="https://pagefind.app" target="_blank" rel="noopener noreferrer">Pagefind</a> 提供 · <kbd>Esc</kbd> 关闭</div>
+  </div>
+</div>

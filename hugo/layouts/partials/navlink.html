@@ -1,0 +1,8 @@
+{{- /* href for a Docusaurus navbar/footer item: `to` gets the site's trailing slash, `href` is used as is. */ -}}
+{{- $u := "" -}}
+{{- with .href }}{{ $u = . }}{{ end -}}
+{{- with .to -}}
+  {{- $u = . -}}
+  {{- if and (hasPrefix . "/") (not (hasSuffix . "/")) (not (strings.Contains . "#")) }}{{ $u = printf "%s/" . }}{{ end -}}
+{{- end -}}
+{{- return $u -}}

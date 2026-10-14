@@ -1,0 +1,70 @@
+# Hugo build of 代码酷 (www.echo.cool). Content is generated from ../docs by scripts/convert.py.
+baseURL = "https://www.echo.cool/"
+title = "代码酷"
+languageCode = "zh-Hans"
+hasCJKLanguage = true
+disableKinds = ["taxonomy", "term", "rss"]
+enableRobotsTXT = false
+timeout = "120s"
+
+[params]
+  # Set HUGO_PARAMS_NOINDEX=true for staging/preview builds so they are never indexed.
+  noindex = false
+  # Pagefind index location (built into public/pagefind by scripts/build.sh).
+  pagefindBundle = "/pagefind/"
+  # Ads and analytics load only in production builds (`hugo`, not `hugo server`).
+  gtag = "G-YM3ZG479VT"
+  baiduAnalytics = "1b165f68ccbfbd01c804c65a81779d58"
+  adsenseAccount = "ca-pub-8558870819217345"
+  adsenseClients = ["ca-pub-8558870819217345", "ca-pub-7078440143664316"]
+  keywords = "学习编程, 编程, 代码酷, python, java, javascript, c, c++, sql, go"
+
+[module]
+  [[module.mounts]]
+    source = "static"
+    target = "static"
+  [[module.mounts]]
+    source = "../static"
+    target = "static"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+    [markup.goldmark.parser]
+      [markup.goldmark.parser.attribute]
+        title = true
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.typographer]
+        disable = true
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [["$$", "$$"]]
+          inline = [["$", "$"]]
+  [markup.highlight]
+    noClasses = false
+    guessSyntax = false
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+
+# Same values as the Docusaurus sitemap plugin config.
+[sitemap]
+  changeFreq = "daily"
+  priority = 0.5
+
+[mediaTypes."application/atom+xml"]
+  suffixes = ["xml"]
+
+# Docusaurus blog feeds: /blog/rss.xml and /blog/atom.xml
+[outputFormats.blogrss]
+  mediaType = "application/rss+xml"
+  baseName = "rss"
+  isPlainText = true
+  noUgly = true
+[outputFormats.blogatom]
+  mediaType = "application/atom+xml"
+  baseName = "atom"
+  isPlainText = true
+  noUgly = true

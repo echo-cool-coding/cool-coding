@@ -1,0 +1,9 @@
+{{- /* Docusaurus' sitemap format: lastmod as a date (git commit date), daily, 0.5. Pages without a git date get no lastmod. */ -}}
+{{ printf "<?xml version=%q encoding=%q?>" "1.0" "UTF-8" | safeHTML }}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{{- range where .Pages "Sitemap.Disable" "ne" true }}
+{{- if and .Permalink (ne .Kind "404") }}
+<url><loc>{{ .Permalink }}</loc>{{ if .Params.lastmod }}<lastmod>{{ .Lastmod.Format "2006-01-02" }}</lastmod>{{ end }}<changefreq>{{ .Sitemap.ChangeFreq }}</changefreq><priority>{{ .Sitemap.Priority }}</priority></url>
+{{- end }}
+{{- end }}
+</urlset>

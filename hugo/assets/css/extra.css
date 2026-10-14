@@ -1,0 +1,52 @@
+/* Small additions on top of the Docusaurus stylesheet (static/css/docusaurus.css) for the Hugo build. */
+
+/* Collapsed sidebar / mobile menu categories (Docusaurus animates height in JS; here it is a simple toggle). */
+.menu__list-item--collapsed > .menu__list { display: none; }
+
+/* Mermaid diagrams render client-side, like @docusaurus/theme-mermaid. */
+.docusaurus-mermaid-container { text-align: center; margin-bottom: var(--ifm-leading); }
+.docusaurus-mermaid-container pre.mermaid { background: none; padding: 0; }
+
+/* Code lines from chroma */
+.prism-code { margin: 0; }
+.codeBlockContent_QJqH .buttonGroup_M5ko .clean-btn { display: flex; align-items: center; }
+
+/* Comments */
+.giscus { margin-top: 2rem; }
+
+/* Search dialog (Pagefind) styled to sit where DocSearch's modal does. */
+.cnr-search { position: fixed; inset: 0; z-index: 1000; }
+.cnr-search[hidden] { display: none; }
+.cnr-search__backdrop { position: absolute; inset: 0; background: rgba(101, 108, 133, 0.8); }
+html[data-theme="dark"] .cnr-search__backdrop { background: rgba(9, 10, 17, 0.8); }
+.cnr-search__dialog { position: relative; margin: 60px auto 0; width: min(800px, calc(100% - 32px)); max-height: calc(100vh - 120px); display: flex; flex-direction: column; background: var(--ifm-background-surface-color); border-radius: 6px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3); padding: 12px; }
+#cnr-search-ui { overflow-y: auto; flex: 1; --pagefind-ui-scale: 0.9; --pagefind-ui-primary: var(--ifm-color-primary); --pagefind-ui-text: var(--ifm-font-color-base); --pagefind-ui-background: var(--ifm-background-surface-color); --pagefind-ui-border: var(--ifm-color-emphasis-300); --pagefind-ui-tag: var(--ifm-color-emphasis-200); --pagefind-ui-font: var(--ifm-font-family-base); }
+.cnr-search__footer { border-top: 1px solid var(--ifm-color-emphasis-200); margin-top: 8px; padding-top: 8px; font-size: 12px; color: var(--ifm-color-emphasis-600); text-align: right; }
+#search-page { --pagefind-ui-primary: var(--ifm-color-primary); --pagefind-ui-text: var(--ifm-font-color-base); --pagefind-ui-background: var(--ifm-background-surface-color); --pagefind-ui-border: var(--ifm-color-emphasis-300); --pagefind-ui-font: var(--ifm-font-family-base); }
+@media (max-width: 768px) { .cnr-search__dialog { margin-top: 0; width: 100%; max-height: 100vh; height: 100vh; border-radius: 0; } }
+
+/* The navbar has more top-level items than Docusaurus fits between 997px and ~1530px, which pushed
+   About, the theme toggle and search off-screen. Tighten it first, then fall back to the mobile menu. */
+@media (997px <= width < 1530px) {
+  .navbar__item { padding: 0 0.4rem; }
+  .navbar__link { font-size: 0.9rem; }
+}
+@media (997px <= width < 1290px) {
+  .navbar__item { padding: 0 0.3rem; }
+  .navbar__link { font-size: 0.85rem; }
+}
+@media (997px <= width < 1210px) {
+  .navbar__toggle { display: inherit; }
+  .navbar__items > .navbar__item { display: none; }
+}
+/* src/css/custom.css hid this whole group below 1400px to stop the overlap; the rules above make room, so keep search visible. */
+@media (997px <= width < 1400px) {
+  .theme-layout-navbar-right { display: flex; }
+}
+
+/* WeChat float/popup: the module classes set display, so honour [hidden] explicitly. */
+[data-wechat-float][hidden], [data-wechat-modal][hidden] { display: none !important; }
+
+/* prism-react-renderer's github/dracula themes set comments in italic (github: #999988). */
+.prism-code :is(.c, .c1, .cm, .ch, .cs, .cpf) { font-style: italic; }
+html[data-theme="light"] .prism-code :is(.c, .c1, .cm, .ch, .cs, .cpf) { color: #999988; }

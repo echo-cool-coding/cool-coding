@@ -1,0 +1,10 @@
+{{- /* Hugo's TOC rewritten into Docusaurus' table-of-contents markup (empty when there are no h2/h3). */ -}}
+{{- $t := .TableOfContents -}}
+{{- if findRE `<li>` $t 1 -}}
+{{- $t = replaceRE `^\s*<nav id="TableOfContents">\s*<ul>` `<ul class="table-of-contents table-of-contents__left-border">` $t -}}
+{{- $t = replaceRE `</nav>\s*$` "" $t -}}
+{{- $t = replaceRE `<a href=` `<a class="table-of-contents__link toc-highlight" href=` $t -}}
+{{- else -}}
+{{- $t = "" -}}
+{{- end -}}
+{{- return $t -}}

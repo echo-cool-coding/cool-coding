@@ -1,0 +1,67 @@
+{{- $tut := partial "tutorial.html" . }}
+{{- $toc := partial "toc.html" . }}
+<div class="docsWrapper_hBAB">
+  <button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type="button" data-back-to-top></button>
+  <div class="docRoot_UBD9">
+    {{- with $tut }}
+    <aside class="theme-doc-sidebar-container docSidebarContainer_YfHR">
+      <div class="sidebarViewport_aRkj">
+        <div class="sidebar_njMd">
+          <nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_SIkG menuWithAnnouncementBar_GW3s" data-doc-sidebar>
+            {{ partialCached "sidebar.html" . .dir }}
+          </nav>
+        </div>
+      </div>
+    </aside>
+    {{- end }}
+    <main class="docMainContainer_TBSr{{ if not $tut }} docMainContainerEnhanced_lQrH{{ end }}">
+      <div class="container padding-top--md padding-bottom--lg">
+        <div class="row">
+          <div class="col{{ if $toc }} docItemCol_VOVn{{ end }}">
+            <div class="docItemContainer_Djhp">
+              <article>
+                {{ partial "breadcrumbs.html" (dict "page" . "tut" $tut) }}
+                {{- if $toc }}
+                <div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo" data-toc-mobile>
+                  <button type="button" class="clean-btn tocCollapsibleButton_TO0P" data-toc-mobile-toggle>本页总览</button>
+                  <div class="collapsibleContent_i85q tocCollapsibleContent_vkbj" hidden>{{ $toc | safeHTML }}</div>
+                </div>
+                {{- end }}
+                <div class="theme-doc-markdown markdown" data-pagefind-body>
+                  {{- $content := .Content }}
+                  {{- if not (findRE `^\s*<header><h1` $content 1) }}
+                  <header><h1>{{ .Title }}</h1></header>
+                  {{- end }}
+                  {{ $content }}
+                </div>
+                <footer class="theme-doc-footer docusaurus-mt-lg">
+                  <div class="row margin-top--sm theme-doc-footer-edit-meta-row">
+                    <div class="col noPrint_WFHX">
+                      {{- with .Params.srcfile }}
+                      <a href="{{ site.Data.site.editUrl }}{{ . }}" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a>
+                      {{- end }}
+                    </div>
+                    <div class="col lastUpdated_JAkA"></div>
+                  </div>
+                </footer>
+                {{- if $tut }}
+                <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #e0e0e0">
+                  <p style="font-size:0.95rem;line-height:1.6">💡 如果你在本站发现错误或笔误，欢迎点击 <strong>“编辑此页”</strong> 来修改。
+                    你的反馈对我们非常重要，非常感谢！🙏</p>
+                </div>
+                <div class="giscus" data-giscus></div>
+                {{- end }}
+              </article>
+              {{- with $tut }}{{ partial "pagination.html" (dict "page" $ "tut" .) }}{{ end }}
+            </div>
+          </div>
+          {{- if $toc }}
+          <div class="col col--3">
+            <div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop" data-toc>{{ $toc | safeHTML }}</div>
+          </div>
+          {{- end }}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

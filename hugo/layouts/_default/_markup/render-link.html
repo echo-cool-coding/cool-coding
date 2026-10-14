@@ -1,0 +1,16 @@
+{{- /* Resolve Docusaurus-style relative links to source files (../x/1-foo.mdx#frag) to the target page URL. */ -}}
+{{- $dest := .Destination -}}
+{{- $u := urls.Parse $dest -}}
+{{- if and (not $u.Scheme) (not (hasPrefix $dest "/")) (or (strings.HasSuffix $u.Path ".md") (strings.HasSuffix $u.Path ".mdx")) -}}
+  {{- with .Page.File -}}
+    {{- $p := path.Clean (path.Join .Dir $u.Path) -}}
+    {{- $p = replaceRE `\.mdx?$` "" $p -}}
+    {{- $p = replaceRE `/(index|README)$` "" $p -}}
+    {{- with site.GetPage $p -}}
+      {{- $dest = .RelPermalink -}}
+      {{- with $u.Fragment }}{{ $dest = printf "%s#%s" $dest . }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+<a href="{{ $dest | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if strings.HasPrefix $dest "http" }} rel="noopener"{{ end }}>{{ .Text | safeHTML }}</a>
+{{- /**/ -}}

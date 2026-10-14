@@ -1,0 +1,8 @@
+{{- /* Relative images were next to the source file in docs/; convert.py copies them to /docsrc/<source dir>/. */ -}}
+{{- $src := .Destination -}}
+{{- $u := urls.Parse $src -}}
+{{- if and (not $u.Scheme) (not (hasPrefix $src "/")) (not (hasPrefix $src "data:")) -}}
+  {{- $src = path.Join "/docsrc" (.Page.Params.srcdir | default "") $u.Path -}}
+{{- end -}}
+<img src="{{ $src | safeURL }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy">
+{{- /**/ -}}

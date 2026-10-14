@@ -1,0 +1,16 @@
+{{- $cur := .RelPermalink }}
+<aside class="col col--3">
+  <nav class="sidebar_re4s thin-scrollbar" aria-label="最近博文导航">
+    <div class="sidebarItemTitle_pO2u margin-bottom--md">最近博文</div>
+    {{- range (where site.RegularPages "Section" "blog").ByDate.Reverse.GroupByDate "2006" }}
+    <div role="group">
+      <h3 class="yearGroupHeading_rMGB">{{ .Key }}</h3>
+      <ul class="sidebarItemList_Yudw clean-list">
+        {{- range .Pages }}
+        <li class="sidebarItem__DBe"><a {{ if eq .RelPermalink $cur }}aria-current="page" class="sidebarItemLink_mo7H sidebarItemLinkActive_I1ZP"{{ else }}class="sidebarItemLink_mo7H"{{ end }} href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+        {{- end }}
+      </ul>
+    </div>
+    {{- end }}
+  </nav>
+</aside>

@@ -1,0 +1,8 @@
+{{- /* Docusaurus code block markup; tokens are coloured by chroma classes (assets/css/chroma.css). */ -}}
+{{- $lang := .Type | default "text" -}}
+{{- $hl := transform.HighlightCodeBlock . (dict "noClasses" false "lineNos" false) -}}
+<div class="language-{{ $lang }} codeBlockContainer_Ckt0 theme-code-block">
+  {{- with .Attributes.title }}<div class="codeBlockTitle_OeMC">{{ . }}</div>{{ end }}
+  <div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-{{ $lang }} codeBlock_bY9V thin-scrollbar chroma"><code class="codeBlockLines_e6Vv">{{ $hl.Inner }}</code></pre></div>
+</div>
+{{- /**/ -}}

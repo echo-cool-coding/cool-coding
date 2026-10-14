@@ -1,0 +1,22 @@
+{{ define "htmlclass" }}plugin-blog plugin-id-default{{ end }}
+{{ define "main" }}
+<header class="hero hero--primary"><div class="container"><h1 class="hero__title">历史博文</h1><p class="hero__subtitle">历史博文</p></div></header>
+<main>
+  <section class="margin-vert--lg">
+    <div class="container">
+      <div class="row">
+        {{- range (where site.RegularPages "Section" "blog").ByDate.Reverse.GroupByDate "2006" }}
+        <div class="col col--4 margin-vert--lg">
+          <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="{{ .Key }}">{{ .Key }}<a href="#{{ .Key }}" class="hash-link" aria-label="{{ .Key }}的直接链接" title="{{ .Key }}的直接链接" translate="no">&#8203;</a></h3>
+          <ul>
+            {{- range .Pages }}
+            <li><a href="{{ .RelPermalink }}">{{ .Date.Month | int }}月{{ .Date.Day }}日 - {{ .Title }}</a></li>
+            {{- end }}
+          </ul>
+        </div>
+        {{- end }}
+      </div>
+    </div>
+  </section>
+</main>
+{{ end }}

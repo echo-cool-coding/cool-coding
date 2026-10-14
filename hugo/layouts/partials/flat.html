@@ -1,0 +1,11 @@
+{{- /* All readable pages of a section tree, in sidebar order (for previous/next links). */ -}}
+{{- $out := slice -}}
+{{- range .Pages.ByWeight -}}
+  {{- if .IsSection -}}
+    {{- if .RelPermalink }}{{ $out = $out | append . }}{{ end -}}
+    {{- $out = $out | append (partial "flat.html" .) -}}
+  {{- else -}}
+    {{- $out = $out | append . -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

@@ -1,9 +1,13 @@
-name: Deploy to Cloudflare and GitHub Pages
+name: Docusaurus build and deploy (rollback only)
 
+# The site is built with Hugo now (hugo.yml). This workflow only runs when started by hand,
+# to put the Docusaurus build back on GitHub Pages if the Hugo site has to be rolled back.
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
