@@ -1,0 +1,22 @@
+{{- $posts := .Pages.ByDate.Reverse -}}
+{{ printf "<?xml version=%q encoding=%q?>" "1.0" "utf-8" | safeHTML }}
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>{{ .Permalink }}</id>
+    <title>{{ site.Title }} Blog</title>
+    {{- with index $posts 0 }}
+    <updated>{{ .Date.UTC.Format "2006-01-02T15:04:05.000Z" }}</updated>
+    {{- end }}
+    <link rel="alternate" href="{{ .Permalink }}"/>
+    <subtitle>{{ site.Title }} Blog</subtitle>
+    <icon>{{ absURL "favicon.ico" }}</icon>
+    {{- range $posts }}
+    <entry>
+        <title type="html">{{ printf "<![CDATA[%s]]>" .Title | safeHTML }}</title>
+        <id>{{ .Permalink }}</id>
+        <link href="{{ .Permalink }}"/>
+        <updated>{{ .Date.UTC.Format "2006-01-02T15:04:05.000Z" }}</updated>
+        <summary type="html">{{ printf "<![CDATA[%s]]>" .Description | safeHTML }}</summary>
+        <content type="html">{{ printf "<![CDATA[%s]]>" .Content | safeHTML }}</content>
+    </entry>
+    {{- end }}
+</feed>

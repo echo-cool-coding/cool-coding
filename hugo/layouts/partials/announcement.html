@@ -1,0 +1,9 @@
+{{- with site.Data.site.announcementBar }}
+<div class="theme-announcement-bar announcementBar_mb4j" role="banner" style="background-color:{{ .backgroundColor | safeCSS }};color:{{ .textColor | safeCSS }}" data-announcement>
+  <div class="announcementBarPlaceholder_vyr4"></div>
+  <div class="content_knG7 announcementBarContent_xLdY">{{ .content | safeHTML }}</div>
+  {{- if .isCloseable }}
+  <button type="button" aria-label="Close" class="clean-btn close closeButton_CVFx announcementBarClose_gvF7" data-announcement-close><svg viewBox="0 0 15 15" width="14" height="14"><g stroke="currentColor" stroke-width="3.1"><path d="M.75.75l13.5 13.5M14.25.75L.75 14.25"></path></g></svg></button>
+  {{- end }}
+</div>
+{{- end }}

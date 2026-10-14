@@ -1,0 +1,19 @@
+{{- $p := .page }}
+{{- $root := site.GetPage (printf "/docs/%s" .tut.dir) }}
+{{- $flat := partialCached "flat.html" $root .tut.dir }}
+{{- $prev := false }}{{ $next := false }}{{ $found := false }}
+{{- range $flat }}
+  {{- if $found }}{{ if not $next }}{{ $next = . }}{{ end }}
+  {{- else if eq . $p }}{{ $found = true }}
+  {{- else }}{{ $prev = . }}{{ end }}
+{{- end }}
+{{- if $found }}
+<nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡" data-pagefind-ignore>
+  {{- with $prev }}
+  <a class="pagination-nav__link pagination-nav__link--prev" href="{{ .RelPermalink }}"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">{{ .Params.sidebar_label | default .Title }}</div></a>
+  {{- end }}
+  {{- with $next }}
+  <a class="pagination-nav__link pagination-nav__link--next" href="{{ .RelPermalink }}"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">{{ .Params.sidebar_label | default .Title }}</div></a>
+  {{- end }}
+</nav>
+{{- end }}

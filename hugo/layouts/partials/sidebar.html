@@ -1,0 +1,10 @@
+{{- /* Rendered once per tutorial (partialCached by tutorial dir); main.js marks the active link and expands its parents. */ -}}
+{{- $root := site.GetPage (printf "/docs/%s" .dir) -}}
+<ul class="theme-doc-sidebar-menu menu__list">
+  <li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item">
+    <div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link" href="{{ .url }}"><span title="{{ .label }}" class="categoryLinkLabel_W154">{{ .label }}</span></a></div>
+    {{- with $root }}
+    {{ partial "tree.html" (dict "section" . "level" 2) }}
+    {{- end }}
+  </li>
+</ul>

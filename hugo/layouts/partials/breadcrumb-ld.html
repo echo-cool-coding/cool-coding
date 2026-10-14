@@ -1,0 +1,15 @@
+{{- /* BreadcrumbList structured data, the same items Docusaurus emits for docs pages. */ -}}
+{{- $p := . }}{{ $tut := partial "tutorial.html" . }}
+{{- if $tut }}
+{{- $items := slice (dict "@type" "ListItem" "position" 1 "name" $tut.label "item" (absURL $tut.url)) }}
+{{- if ne $p.Params.type "tutorialindex" }}
+{{- $rootPath := printf "/docs/%s" $tut.dir }}
+{{- range $p.Ancestors.Reverse }}
+  {{- if and .IsSection .RelPermalink (gt (len .Path) (len $rootPath)) (hasPrefix .Path $rootPath) }}
+  {{- $items = $items | append (dict "@type" "ListItem" "position" (add (len $items) 1) "name" (.Params.sidebar_label | default .Title) "item" .Permalink) }}
+  {{- end }}
+{{- end }}
+{{- $items = $items | append (dict "@type" "ListItem" "position" (add (len $items) 1) "name" ($p.Params.sidebar_label | default $p.Title) "item" $p.Permalink) }}
+{{- end }}
+<script type="application/ld+json">{{ dict "@context" "https://schema.org" "@type" "BreadcrumbList" "itemListElement" $items | jsonify | safeJS }}</script>
+{{- end }}

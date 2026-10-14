@@ -1,0 +1,5 @@
+{{- if eq .Level 1 -}}
+<header><h1>{{ .Text }}</h1></header>
+{{- else -}}
+<h{{ .Level }} class="anchor anchorTargetStickyNavbar_Vzrq" id="{{ .Anchor }}">{{ .Text }}<a href="#{{ .Anchor }}" class="hash-link" aria-label="{{ .PlainText }}的直接链接" title="{{ .PlainText }}的直接链接">&#8203;</a></h{{ .Level }}>
+{{- end -}}

@@ -1,0 +1,10 @@
+{{- /* Return the tutorial (from sidebars.js) that contains this page, or nothing. */ -}}
+{{- $src := .Params.srcdir | default "" -}}
+{{- $tdir := .Params.tutdir | default "" -}}
+{{- $best := "" -}}
+{{- range site.Data.tutorials -}}
+  {{- if or (eq $src .dir) (hasPrefix $src (printf "%s/" .dir)) (eq $tdir .dir) -}}
+    {{- if or (not $best) (gt (len .dir) (len $best.dir)) -}}{{- $best = . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $best -}}

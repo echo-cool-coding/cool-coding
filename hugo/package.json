@@ -1,0 +1,8 @@
+{
+  "name": "cool-coding-hugo",
+  "private": true,
+  "description": "Search indexing for the Hugo build (scripts/search_index.mjs).",
+  "dependencies": {
+    "pagefind": "1.5.2"
+  }
+}

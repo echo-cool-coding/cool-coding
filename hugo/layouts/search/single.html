@@ -1,0 +1,17 @@
+{{ define "htmlclass" }}plugin-pages plugin-id-default{{ end }}
+{{ define "main" }}
+<main class="container margin-vert--lg">
+  <h1>在文档中搜索</h1>
+  {{- $b := site.Params.pagefindBundle | default "/pagefind/" }}
+  <link href="{{ $b }}pagefind-ui.css" rel="stylesheet">
+  <script src="{{ $b }}pagefind-ui.js"></script>
+  <div id="search-page"></div>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      var ui = new PagefindUI({ element: '#search-page', bundlePath: '{{ $b }}', showSubResults: true, showImages: false, processResult: window.cnrCleanResult });
+      var q = new URLSearchParams(location.search).get('q');
+      if (q) ui.triggerSearch(q);
+    });
+  </script>
+</main>
+{{ end }}

@@ -1,0 +1,23 @@
+{{- /* WeChat official-account float + popup (port of src/components/WechatFollow; settings from customFields.wechat). */ -}}
+{{- with site.Data.site.wechat }}{{ if .enabled }}
+{{- $qr := printf "/%s" .qrImage }}
+{{- $icon := `<path fill="currentColor" d="M9.5 4C5.36 4 2 6.83 2 10.3c0 1.9 1 3.6 2.6 4.75l-.65 2.3 2.7-1.4c.9.28 1.85.45 2.85.45h.36a5.3 5.3 0 0 1-.2-1.4c0-3.42 3.3-6.2 7.37-6.2.3 0 .58.02.87.05C17.2 6.02 13.7 4 9.5 4Zm-2.75 4.2a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm5.5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM16.9 10c-3.36 0-6.1 2.28-6.1 5.1 0 2.81 2.74 5.1 6.1 5.1.8 0 1.57-.13 2.27-.36L21.4 21l-.55-1.9C22.1 18.16 23 16.7 23 15.1c0-2.82-2.73-5.1-6.1-5.1Zm-2.1 3.3a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Zm4.2 0a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Z"/>` }}
+{{- $hint := "打开微信「扫一扫」，扫码关注公众号" }}
+{{- $title := .popupTitle | default (printf "关注「%s」公众号" .name) }}
+{{- $days := .popup.dismissDays }}
+<div class="float_Riaj" data-wechat-float>
+  <div class="floatCard_JlPQ"><div class="card_c0xT"><img class="qr_A_KO" src="{{ $qr }}" alt="{{ .name }} 微信公众号二维码" loading="lazy" draggable="false"><div class="cardName_Bmbx">{{ .name }}</div><p class="cardDescription_fiKJ">{{ .description }}</p><div class="cardHint_saXK" data-wechat-hint>{{ $hint }}</div></div></div>
+  <button type="button" class="floatButton_vaya" aria-haspopup="dialog" aria-label="{{ .floatLabel }}：{{ .name }}" data-wechat-open><svg class="floatIcon_ZlO1" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">{{ $icon | safeHTML }}</svg><span class="floatLabel__Cq5">{{ .floatLabel }}</span></button>
+  <button type="button" class="floatClose_aUvC" aria-label="隐藏公众号悬浮窗" data-wechat-hide>×</button>
+</div>
+<div class="backdrop_UdBz" role="presentation" data-wechat-modal hidden
+     data-key="{{ .storageKey | default (printf "wechat-follow-dismissed:%s" .name) }}"
+     data-popup="{{ .popup.enabled }}" data-delay="{{ .popup.delayMs }}" data-days="{{ $days }}">
+  <div class="modal_f9A8" role="dialog" aria-modal="true" aria-labelledby="wechat-follow-title">
+    <button type="button" class="modalClose_pFA0" aria-label="关闭" data-wechat-close>×</button>
+    <h2 id="wechat-follow-title" class="modalTitle_xKEv"><svg class="modalTitleIcon_LLgj" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">{{ $icon | safeHTML }}</svg>{{ $title }}</h2>
+    <div class="card_c0xT cardLarge_YHiM"><img class="qr_A_KO" src="{{ $qr }}" alt="{{ .name }} 微信公众号二维码" loading="lazy" draggable="false"><div class="cardName_Bmbx">{{ .name }}</div><p class="cardDescription_fiKJ">{{ .description }}</p><div class="cardHint_saXK" data-wechat-hint>{{ $hint }}</div></div>
+    <button type="button" class="button button--secondary button--outline modalLater_o9h8" data-wechat-close>{{ if gt $days 0 }}稍后再说（{{ $days }} 天内不再提醒）{{ else }}稍后再说{{ end }}</button>
+  </div>
+</div>
+{{- end }}{{ end }}

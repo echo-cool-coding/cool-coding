@@ -1,0 +1,24 @@
+{{- $posts := .Pages.ByDate.Reverse -}}
+{{ printf "<?xml version=%q encoding=%q?>" "1.0" "utf-8" | safeHTML }}
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>{{ site.Title }} Blog</title>
+        <link>{{ .Permalink }}</link>
+        <description>{{ site.Title }} Blog</description>
+        {{- with index $posts 0 }}
+        <lastBuildDate>{{ .Date.UTC.Format "Mon, 02 Jan 2006 15:04:05 GMT" }}</lastBuildDate>
+        {{- end }}
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <language>en</language>
+        {{- range $posts }}
+        <item>
+            <title>{{ printf "<![CDATA[%s]]>" .Title | safeHTML }}</title>
+            <link>{{ .Permalink }}</link>
+            <guid>{{ .Permalink }}</guid>
+            <pubDate>{{ .Date.UTC.Format "Mon, 02 Jan 2006 15:04:05 GMT" }}</pubDate>
+            <description>{{ printf "<![CDATA[%s]]>" .Description | safeHTML }}</description>
+            <content:encoded>{{ printf "<![CDATA[%s]]>" .Content | safeHTML }}</content:encoded>
+        </item>
+        {{- end }}
+    </channel>
+</rss>

@@ -1,0 +1,23 @@
+{{ define "htmlclass" }}blog-wrapper blog-list-page plugin-blog plugin-id-default{{ end }}
+{{ define "main" }}
+<div class="container margin-vert--lg">
+  <div class="row">
+    {{ partial "blog-sidebar.html" . }}
+    <main class="col col--7">
+      {{- range .Pages.ByDate.Reverse }}
+      <article class="margin-bottom--xl">
+        <header>
+          <h2 class="title_f1Hy"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+          {{ partial "blog-meta.html" . }}
+        </header>
+        <div class="markdown">{{ .Summary }}</div>
+        {{- if strings.Contains .RawContent "<!--more-->" }}
+        <footer class="row docusaurus-mt-lg"><div class="col text--right"><a aria-label="阅读 {{ .Title }} 的全文" href="{{ .RelPermalink }}"><b>阅读更多</b></a></div></footer>
+        {{- end }}
+      </article>
+      {{- end }}
+      <nav class="pagination-nav" aria-label="博文列表分页导航"></nav>
+    </main>
+  </div>
+</div>
+{{ end }}

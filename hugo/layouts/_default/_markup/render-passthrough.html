@@ -1,0 +1,6 @@
+{{- .Page.Store.Set "hasMath" true -}}
+{{- if eq .Type "block" -}}
+<div class="math">$${{ .Inner }}$$</div>
+{{- else -}}
+<span class="math">\({{ .Inner }}\)</span>
+{{- end -}}

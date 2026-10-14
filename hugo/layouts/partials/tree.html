@@ -1,0 +1,21 @@
+{{- $level := .level -}}
+<ul class="menu__list">
+  {{- range .section.Pages.ByWeight }}
+  {{- $label := .Params.sidebar_label | default .Title }}
+  {{- if .IsSection }}
+  <li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-{{ $level }} menu__list-item menu__list-item--collapsed">
+    <div class="menu__list-item-collapsible">
+      {{- if .RelPermalink }}
+      <a class="categoryLink_byQd menu__link menu__link--sublist" href="{{ .RelPermalink }}"><span title="{{ $label }}" class="categoryLinkLabel_W154">{{ $label }}</span></a>
+      <button aria-label="展开侧边栏分类 '{{ $label }}'" aria-expanded="false" type="button" class="clean-btn menu__caret" data-collapse></button>
+      {{- else }}
+      <a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="#" data-collapse><span title="{{ $label }}" class="categoryLinkLabel_W154">{{ $label }}</span></a>
+      {{- end }}
+    </div>
+    {{ partial "tree.html" (dict "section" . "level" (add $level 1)) }}
+  </li>
+  {{- else }}
+  <li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-{{ $level }} menu__list-item"><a class="menu__link" href="{{ .RelPermalink }}">{{ $label }}</a></li>
+  {{- end }}
+  {{- end }}
+</ul>

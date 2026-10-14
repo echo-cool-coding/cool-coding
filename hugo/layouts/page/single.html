@@ -1,0 +1,10 @@
+{{ define "htmlclass" }}mdx-wrapper mdx-page plugin-pages plugin-id-default{{ end }}
+{{ define "main" }}
+<main class="container container--fluid margin-vert--lg">
+  <div class="row mdxPageWrapper_j9I6">
+    <div class="col col--8">
+      <article class="markdown" data-pagefind-body>{{ .Content }}</article>
+    </div>
+  </div>
+</main>
+{{ end }}

@@ -1,0 +1,17 @@
+{{ define "htmlclass" }}blog-wrapper blog-post-page plugin-blog plugin-id-default{{ end }}
+{{ define "main" }}
+<div class="container margin-vert--lg">
+  <div class="row">
+    {{ partial "blog-sidebar.html" . }}
+    <main class="col col--7">
+      <article>
+        <header>
+          <h1 class="title_f1Hy">{{ .Title }}</h1>
+          {{ partial "blog-meta.html" . }}
+        </header>
+        <div id="__blog-post-container" class="markdown" data-pagefind-body>{{ .Content }}</div>
+      </article>
+    </main>
+  </div>
+</div>
+{{ end }}

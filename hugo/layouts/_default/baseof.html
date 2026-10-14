@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-Hans" dir="ltr" class="{{ block "htmlclass" . }}plugin-pages{{ end }}" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{- /* Pages that set fullTitle (home, about, ...) used Layout's title without the site name, like Docusaurus did. */}}
+  {{- $title := cond (.Params.fullTitle | default false) .Title (printf "%s | %s" (cond (eq .Kind "404") "找不到页面" .Title) site.Title) }}
+  {{- $image := absURL "img/logo.png" }}
+  <title>{{ $title }}</title>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:image" content="{{ $image }}">
+  <meta name="twitter:image" content="{{ $image }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:locale" content="zh_Hans">
+  {{- $kw := .Params.keywords | default site.Params.keywords }}
+  {{- if reflect.IsSlice $kw }}{{ $kw = delimit $kw "," }}{{ end }}
+  <meta name="keywords" content="{{ $kw }}">
+  <meta name="google-adsense-account" content="{{ site.Params.adsenseAccount }}">
+  <meta property="og:title" content="{{ $title }}">
+  {{- with .Description }}
+  <meta name="description" content="{{ . }}">
+  <meta property="og:description" content="{{ . }}">
+  {{- end }}
+  <link rel="canonical" href="{{ .Permalink }}">
+  <link rel="alternate" href="{{ .Permalink }}" hreflang="zh-Hans">
+  <link rel="alternate" href="{{ .Permalink }}" hreflang="x-default">
+  {{- $robots := cond (or site.Params.noindex (eq .Kind "404")) "noindex, nofollow" (.Params.robots | default "") }}
+  {{- with $robots }}
+  <meta name="robots" content="{{ . }}">
+  {{- end }}
+  {{- partial "breadcrumb-ld.html" . }}
+  <link rel="alternate" type="application/rss+xml" href="/blog/rss.xml" title="{{ site.Title }} RSS Feed">
+  <link rel="alternate" type="application/atom+xml" href="/blog/atom.xml" title="{{ site.Title }} Atom Feed">
+  <link rel="search" type="application/opensearchdescription+xml" title="{{ site.Title }}" href="/opensearch.xml">
+  {{- if hugo.IsProduction }}
+  <link rel="preconnect" href="https://www.google-analytics.com">
+  <link rel="preconnect" href="https://www.googletagmanager.com">
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.Params.gtag }}"></script>
+  <script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config",{{ site.Params.gtag }},{})</script>
+  {{- end }}
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  {{- if hugo.IsProduction }}
+  {{- range site.Params.adsenseClients }}
+  <script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ . }}" async crossorigin="anonymous"></script>
+  {{- end }}
+  <script src="https://hm.baidu.com/hm.js?{{ site.Params.baiduAnalytics }}" async crossorigin="anonymous"></script>
+  {{- end }}
+  <script>
+    /* Same storage keys as Docusaurus, so a reader's theme and dismissed announcement carry over. */
+    (function () {
+      var d = document.documentElement;
+      try {
+        var t = new URLSearchParams(location.search).get('docusaurus-theme') || localStorage.getItem('theme');
+        d.setAttribute('data-theme', t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        d.setAttribute('data-theme-choice', t || 'system');
+        var id = {{ site.Data.site.announcementBar.id }};
+        var dismissed = localStorage.getItem('docusaurus.announcement.dismiss') === 'true' &&
+          localStorage.getItem('docusaurus.announcement.id') === id;
+        d.setAttribute('data-announcement-bar-initially-dismissed', dismissed ? 'true' : 'false');
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="/css/docusaurus.css">
+  {{- $chroma := resources.Get "css/chroma.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ $chroma.RelPermalink }}">
+  {{- $css := resources.Get "css/extra.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}">
+</head>
+<body class="navigation-with-keyboard">
+  <div id="__docusaurus">
+    <div role="region" aria-label="跳到主要内容"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div>
+    {{ partial "announcement.html" . }}
+    {{ partial "navbar.html" . }}
+    <div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_eExm">
+      {{ block "main" . }}{{ end }}
+    </div>
+    {{ partial "footer.html" . }}
+  </div>
+  {{ partial "wechat.html" . }}
+  {{ partial "search-modal.html" . }}
+  {{- $js := resources.Get "js/main.js" | resources.ExecuteAsTemplate "js/main.js" . | minify | fingerprint }}
+  <script src="{{ $js.RelPermalink }}" defer></script>
+  {{- if .Store.Get "hasMermaid" }}
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'default' });
+  </script>
+  {{- end }}
+  {{- if .Store.Get "hasMath" }}
+  <link rel="stylesheet" href="/katex/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.querySelector('.markdown'), {delimiters: [{left: '$$', right: '$$', display: true}, {left: '\\(', right: '\\)', display: false}], throwOnError: false})"></script>
+  {{- end }}
+</body>
+</html>
