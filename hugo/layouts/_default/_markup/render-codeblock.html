@@ -1,5 +1,7 @@
 {{- /* Docusaurus code block markup; tokens are coloured by chroma classes (assets/css/chroma.css). */ -}}
 {{- $lang := .Type | default "text" -}}
+{{- /* Python, JavaScript, TypeScript, PHP, SQL and HTML examples may get a Run button (assets/js/runner.js decides which). */ -}}
+{{- if in (slice "python" "py" "python3" "javascript" "js" "sql" "typescript" "ts" "php" "html") (lower $lang) }}{{ .Page.Store.Set "hasRunnable" true }}{{ end -}}
 {{- $hl := transform.HighlightCodeBlock . (dict "noClasses" false "lineNos" false) -}}
 <div class="language-{{ $lang }} codeBlockContainer_Ckt0 theme-code-block">
   {{- with .Attributes.title }}<div class="codeBlockTitle_OeMC">{{ . }}</div>{{ end }}

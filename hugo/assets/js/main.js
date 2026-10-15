@@ -210,6 +210,152 @@
     giscus.appendChild(g);
   }
 
+  /* ---------- Learning progress: pages read, per-tutorial counts, "继续学习" on the home page (this browser only).
+     Same feature and storage format as compilenrun.com (cnr_progress). Paths are compared decoded. ---------- */
+  var escHtml = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var PKEY = 'cnr_progress';
+  var loadProgress = function () {
+    var p = null;
+    try { p = JSON.parse(store.get(PKEY) || 'null'); } catch (e) {}
+    return p && p.v === 1 && p.done && p.tuts ? p : { v: 1, done: {}, tuts: {} };
+  };
+  var progress = loadProgress();
+  var saveProgress = function () { store.set(PKEY, JSON.stringify(progress)); };
+  var pageTitle = document.title.replace(/\s*\|\s*[^|]*$/, '');
+  // Doc pages listed in a sidebar tree; generated category indexes (/docs/category/...) are not pages to read.
+  var sidebarPages = function (scope) {
+    var seen = {};
+    scope.querySelectorAll('a.menu__link[href]').forEach(function (a) {
+      var h = dec(a.getAttribute('href'));
+      if (h.charAt(0) === '/' && h.indexOf('/docs/category/') !== 0) seen[h] = true;
+    });
+    return Object.keys(seen);
+  };
+  var sideNav = document.querySelector('[data-doc-sidebar][data-tut]');
+  var tutBar = null;
+  var markRead = function (a, on) {
+    var check = a.querySelector(':scope > .cnr-check');
+    if (on && !check) a.insertAdjacentHTML('beforeend', '<span class="cnr-check" title="已完成" aria-label="（已完成）">✓</span>');
+    else if (!on && check) check.remove();
+  };
+  var paintProgress = function () {
+    if (!sideNav) return;
+    var pages = sidebarPages(sideNav.querySelector('.theme-doc-sidebar-menu'));
+    var n = pages.filter(function (h) { return progress.done[h]; }).length;
+    // Both the desktop sidebar and the copy in the mobile menu.
+    document.querySelectorAll('.theme-doc-sidebar-menu').forEach(function (menu) {
+      menu.querySelectorAll('.theme-doc-sidebar-item-link > a.menu__link[href]').forEach(function (a) { markRead(a, !!progress.done[dec(a.getAttribute('href'))]); });
+      menu.querySelectorAll('.theme-doc-sidebar-item-category').forEach(function (li) {
+        var own = li.querySelector(':scope > .menu__list-item-collapsible > .menu__link');
+        var sub = li.querySelector(':scope > .menu__list');
+        var all = sub ? sidebarPages(sub) : [];
+        var href = dec(own.getAttribute('href') || '');
+        if (href && href.charAt(0) === '/' && href.indexOf('/docs/category/') !== 0) all.push(href);
+        markRead(own, all.length > 0 && all.every(function (h) { return progress.done[h]; }));
+      });
+    });
+    if (!tutBar) {
+      tutBar = document.createElement('div');
+      tutBar.className = 'cnr-progress';
+      sideNav.insertBefore(tutBar, sideNav.firstChild);
+    }
+    var pct = pages.length ? Math.round(100 * n / pages.length) : 0;
+    tutBar.hidden = !n;
+    tutBar.innerHTML = '<div class="cnr-progress__text"><span>已完成 ' + n + ' / ' + pages.length + ' 页</span><span>' + pct + '%</span></div>' +
+      '<div class="cnr-progress__bar" role="progressbar" aria-label="教程进度" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + pct + '%"></i></div>';
+    var dir = sideNav.getAttribute('data-tut');
+    var t = progress.tuts[dir] || (progress.tuts[dir] = {});
+    t.label = sideNav.getAttribute('data-tut-label');
+    t.url = sideNav.getAttribute('data-tut-url');
+    t.total = pages.length;
+    t.done = n;
+  };
+  // Generated category pages list pages and sections as cards; sections show how many of their pages are done.
+  var paintCards = function () {
+    var cats = {};
+    if (sideNav) sideNav.querySelectorAll('.theme-doc-sidebar-item-category').forEach(function (li) {
+      var own = li.querySelector(':scope > .menu__list-item-collapsible > .menu__link');
+      var sub = li.querySelector(':scope > .menu__list');
+      var href = dec(own.getAttribute('href') || '');
+      if (!sub || !href || href.charAt(0) !== '/') return;
+      var all = sidebarPages(sub);
+      if (href.indexOf('/docs/category/') !== 0 && all.indexOf(href) < 0) all.push(href);
+      cats[href] = all;
+    });
+    document.querySelectorAll('.generatedIndexPage_vN6x a.theme-doc-card-container[href]').forEach(function (a) {
+      var href = dec(a.getAttribute('href')), all = cats[href];
+      var n = all ? all.filter(function (h) { return progress.done[h]; }).length : 0;
+      a.classList.toggle('cnr-card-read', all ? n === all.length : !!progress.done[href]);
+      var desc = a.querySelector('.cardDescription_L2fP');
+      if (all && n && desc) desc.textContent = '共 ' + all.length + ' 页 · 已完成 ' + n + ' 页';
+    });
+  };
+  paintProgress();
+  paintCards();
+
+  var learn = document.querySelector('[data-learn]');
+  if (learn) {
+    learn.hidden = false;
+    if (sideNav) {
+      var cur = progress.tuts[sideNav.getAttribute('data-tut')];
+      cur.last = { path: here, title: pageTitle };
+      cur.t = Date.now();
+    }
+    saveProgress();
+    var doneBtn = learn.querySelector('[data-mark-done]');
+    var paintDone = function () {
+      var d = !!progress.done[here];
+      doneBtn.setAttribute('aria-pressed', String(d));
+      doneBtn.innerHTML = d ? '<span aria-hidden="true">✓</span> 已完成' : '标记为已完成';
+      doneBtn.title = d ? '点击取消“已完成”' : '读到页面底部时也会自动标记为已完成';
+    };
+    var setDone = function (d) {
+      progress = loadProgress(); // another tab may have saved since this page loaded
+      if (d) progress.done[here] = Date.now(); else delete progress.done[here];
+      paintProgress();
+      saveProgress();
+      paintDone();
+    };
+    var touched = false;
+    doneBtn.onclick = function () { touched = true; setDone(!progress.done[here]); };
+    paintDone();
+    // Reaching the end of the page counts as reading it, once the reader has spent a little time here.
+    var started = Date.now();
+    if (!progress.done[here] && 'IntersectionObserver' in window) {
+      var seenEnd = new IntersectionObserver(function (entries) {
+        if (!entries.some(function (e) { return e.isIntersecting; })) return;
+        seenEnd.disconnect();
+        setTimeout(function () { if (!touched && !progress.done[here]) setDone(true); }, Math.max(0, 20000 - (Date.now() - started)));
+      });
+      seenEnd.observe(learn);
+    }
+  }
+
+  // Home page: the tutorials this reader has been working through.
+  var cont = document.querySelector('[data-continue]');
+  if (cont) {
+    var recent = Object.keys(progress.tuts).map(function (k) { return progress.tuts[k]; })
+      .filter(function (t) { return t.last && /^\/docs\//.test(t.last.path); })
+      .sort(function (a, b) { return (b.t || 0) - (a.t || 0); }).slice(0, 4);
+    if (recent.length) {
+      cont.innerHTML = '<div class="container"><div class="cnr-continue__head"><h2>继续学习</h2>' +
+        '<button type="button" class="clean-btn cnr-continue__clear">清除学习进度</button></div><div class="row">' +
+        recent.map(function (t) {
+          var pct = t.total ? Math.round(100 * t.done / t.total) : 0;
+          return '<div class="col col--3"><a class="card cnr-continue__card" href="' + escHtml(t.last.path) + '">' +
+            '<strong>' + escHtml(t.label) + '</strong><span class="cnr-continue__last">继续：' + escHtml(t.last.title) + ' →</span>' +
+            '<span class="cnr-progress__bar"><i style="width:' + pct + '%"></i></span>' +
+            '<span class="cnr-continue__count">已完成 ' + (t.done || 0) + ' / ' + (t.total || 0) + ' 页</span></a></div>';
+        }).join('') + '</div><p class="cnr-continue__note">学习进度只保存在当前浏览器中。</p></div>';
+      cont.hidden = false;
+      cont.querySelector('.cnr-continue__clear').onclick = function () {
+        if (!confirm('确定要清除这个浏览器中的学习进度吗？')) return;
+        try { localStorage.removeItem(PKEY); } catch (e) {}
+        cont.hidden = true;
+      };
+    }
+  }
+
   /* ---------- WeChat follow float + popup (port of src/components/WechatFollow) ---------- */
   var wfloat = document.querySelector('[data-wechat-float]'), wmodal = document.querySelector('[data-wechat-modal]');
   if (wfloat && wmodal) {

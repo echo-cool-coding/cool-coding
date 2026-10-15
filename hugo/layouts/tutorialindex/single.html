@@ -8,7 +8,7 @@
     {{- with $tut }}
     <aside class="theme-doc-sidebar-container docSidebarContainer_YfHR">
       <div class="sidebarViewport_aRkj"><div class="sidebar_njMd">
-        <nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_SIkG menuWithAnnouncementBar_GW3s" data-doc-sidebar>{{ partialCached "sidebar.html" . .dir }}</nav>
+        <nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_SIkG menuWithAnnouncementBar_GW3s" data-doc-sidebar data-tut="{{ .dir }}" data-tut-label="{{ .label }}" data-tut-url="{{ .url }}">{{ partialCached "sidebar.html" . .dir }}</nav>
       </div></div>
     </aside>
     {{- end }}
