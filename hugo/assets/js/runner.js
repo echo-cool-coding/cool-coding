@@ -885,9 +885,13 @@
     return false;
   }
 
+  // Other scripts (the interview workspace) run code through the same engines.
+  window.CNRRunner = { python: pythonRun, js: jsRun, stopPython: pythonStop };
+
   var cells = { python: [], sql: [], js: [], ts: [], php: [] };
   var page = { html: null, css: [] }; // the latest HTML example and the CSS examples after it
   document.querySelectorAll('.theme-code-block').forEach(function (block) {
+    if (block.closest('[data-cnr-norun]')) return; // regions that handle their own code (the interview editor)
     var m = block.className.match(/\blanguage-([\w+#-]+)/);
     var lang = m && m[1].toLowerCase();
     var kind = lang && LANGS[lang];
