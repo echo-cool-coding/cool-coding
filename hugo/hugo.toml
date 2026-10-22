@@ -17,6 +17,8 @@ timeout = "120s"
   baiduAnalytics = "1b165f68ccbfbd01c804c65a81779d58"
   adsenseAccount = "ca-pub-8558870819217345"
   adsenseClients = ["ca-pub-8558870819217345", "ca-pub-7078440143664316"]
+  # Google Identity Services (One Tap, automatic sign-in, the Sign in with Google button); the Worker verifies the credential.
+  googleClientId = "1072237482521-hqchdphppq230u5agnavq59kvhjnr4iu.apps.googleusercontent.com"
   keywords = "学习编程, 编程, 代码酷, python, java, javascript, c, c++, sql, go"
 
 [module]
@@ -26,6 +28,16 @@ timeout = "120s"
   [[module.mounts]]
     source = "../static"
     target = "static"
+
+# /learning-catalog.json (layouts/index.learningcatalog.json): course order for the learning dashboard.
+[outputs]
+  home = ["HTML", "LearningCatalog"]
+
+[outputFormats.LearningCatalog]
+  mediaType = "application/json"
+  baseName = "learning-catalog"
+  isPlainText = true
+  notAlternative = true
 
 [markup]
   [markup.goldmark]

@@ -2,6 +2,8 @@
 <html lang="zh-Hans" dir="ltr" class="{{ block "htmlclass" . }}plugin-pages{{ end }}" data-theme="light">
 <head>
   <meta charset="utf-8">
+  {{- if in (slice "learning" "profile") .Type }}<meta name="referrer" content="no-referrer">{{ end }}
+  {{- with site.Params.googleClientId }}<meta name="cnr-google-client-id" content="{{ . }}">{{ end }}
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {{- /* Pages that set fullTitle (home, about, ...) used Layout's title without the site name, like Docusaurus did. */}}
   {{- $title := cond (.Params.fullTitle | default false) .Title (printf "%s | %s" (cond (eq .Kind "404") "找不到页面" .Title) site.Title) }}
@@ -32,7 +34,7 @@
   <link rel="alternate" type="application/rss+xml" href="/blog/rss.xml" title="{{ site.Title }} RSS Feed">
   <link rel="alternate" type="application/atom+xml" href="/blog/atom.xml" title="{{ site.Title }} Atom Feed">
   <link rel="search" type="application/opensearchdescription+xml" title="{{ site.Title }}" href="/opensearch.xml">
-  {{- if hugo.IsProduction }}
+  {{- if and hugo.IsProduction (not (in (slice "learning" "profile") .Type)) }}
   <link rel="preconnect" href="https://www.google-analytics.com">
   <link rel="preconnect" href="https://www.googletagmanager.com">
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.Params.gtag }}"></script>
@@ -43,7 +45,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
-  {{- if hugo.IsProduction }}
+  {{- if and hugo.IsProduction (not (in (slice "learning" "profile") .Type)) }}
   {{- range site.Params.adsenseClients }}
   <script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ . }}" async crossorigin="anonymous"></script>
   {{- end }}
@@ -69,6 +71,9 @@
   <link rel="stylesheet" href="{{ $chroma.RelPermalink }}">
   {{- $css := resources.Get "css/extra.css" | minify | fingerprint }}
   <link rel="stylesheet" href="{{ $css.RelPermalink }}">
+  {{- range slice "css/learning.css" "css/profile.css" "css/auth-ui.css" }}
+  {{- with resources.Get . }}{{ $asset := . | minify | fingerprint }}<link rel="stylesheet" href="{{ $asset.RelPermalink }}">{{ end }}
+  {{- end }}
 </head>
 <body class="navigation-with-keyboard">
   <div id="__docusaurus">
@@ -82,8 +87,18 @@
   </div>
   {{ partial "wechat.html" . }}
   {{ partial "search-modal.html" . }}
+  {{- $tut := partial "tutorial.html" . }}
+  {{- $pageData := dict "path" .RelPermalink "title" .Title "course" "" "courseLabel" "" "courseUrl" "" }}
+  {{- with $tut }}{{ $pageData = merge $pageData (dict "course" .dir "courseLabel" (strings.TrimSuffix " 教程" .label) "courseUrl" .url) }}{{ end }}
+  <script>window.CNR_PAGE = {{ $pageData }}; window.CNR_SYNC_ENABLED = true;</script>
   {{- $js := resources.Get "js/main.js" | resources.ExecuteAsTemplate "js/main.js" . | minify | fingerprint }}
   <script src="{{ $js.RelPermalink }}" defer></script>
+  {{- range slice "js/learning.js" "js/learning-sync.js" "js/auth-ui.js" }}
+  {{- with resources.Get . }}{{ $asset := . | minify | fingerprint }}<script src="{{ $asset.RelPermalink }}" defer></script>{{ end }}
+  {{- end }}
+  {{- if eq .Type "profile" }}
+  {{- with resources.Get "js/profile.js" }}{{ $asset := . | minify | fingerprint }}<script src="{{ $asset.RelPermalink }}" defer></script>{{ end }}
+  {{- end }}
   {{- if .Store.Get "hasRunnable" }}
   {{- $runner := resources.Get "js/runner.js" | minify | fingerprint }}
   <script src="{{ $runner.RelPermalink }}" defer></script>

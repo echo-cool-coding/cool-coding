@@ -1,0 +1,59 @@
+{{ define "main" }}
+<main class="container cnr-learning cnr-learning-dashboard" data-learning-dashboard>
+  <header class="cnr-learning__hero">
+    <p class="cnr-learning__eyebrow">按自己的节奏学习</p>
+    <h1>{{ .Title | default "我的学习" }}</h1>
+    <p>继续学习你的课程，回顾保存的笔记，并记录练习。</p>
+  </header>
+  <noscript><p>学习面板需要 JavaScript 才能读取保存在浏览器中的数据。你仍然可以<a href="/">浏览全部教程</a>。</p></noscript>
+  <p class="cnr-learning__notice" data-learning-notice role="status" hidden></p>
+  <p class="cnr-learning__muted" role="status" data-learning-sync-status>未登录时，学习进度只保存在当前浏览器中；登录后会在你的所有设备间同步。</p>
+  <div class="cnr-learning__actions" data-learning-sync-actions hidden>
+    <button type="button" class="cnr-learning__button" data-learning-sync-retry>重新连接</button>
+    <button type="button" class="cnr-learning__button" data-learning-sync-export>下载恢复副本</button>
+  </div>
+  <div class="cnr-learning__stats" data-learning-summary data-learning-personal aria-label="我的学习记录"></div>
+  <section data-learning-personal aria-labelledby="learning-courses-title">
+    <div class="cnr-learning__section-head"><h2 id="learning-courses-title">继续学习</h2><a href="/">浏览全部教程</a></div>
+    <p data-learning-catalog-status class="cnr-learning__muted" role="status"></p>
+    <div class="cnr-learning__grid" data-learning-courses></div>
+  </section>
+  <section data-learning-personal aria-labelledby="learning-bookmarks-title">
+    <h2 id="learning-bookmarks-title">书签</h2>
+    <div class="cnr-learning__grid" data-learning-bookmarks></div>
+  </section>
+  <section data-learning-personal aria-labelledby="learning-notes-title">
+    <h2 id="learning-notes-title">我的笔记</h2>
+    <div class="cnr-learning__notes" data-learning-notes></div>
+  </section>
+  {{- /* 代码酷 has no interview area yet: the section stays so the dashboard matches compilenrun.com, without a link to a missing page. */}}
+  <section data-learning-personal aria-labelledby="learning-plans-title">
+    <div class="cnr-learning__section-head"><h2 id="learning-plans-title">学习计划</h2></div>
+    <div data-learning-plans></div>
+  </section>
+  <section data-learning-personal aria-labelledby="learning-practice-title">
+    <h2 id="learning-practice-title">练习与检查</h2>
+    <p class="cnr-learning__muted">这里是练习记录，而不是自动生成的掌握程度评分。自行记录的练习和经过检查的结果会分开显示。</p>
+    <div class="cnr-learning__grid" data-learning-practice></div>
+  </section>
+  <section class="cnr-learning__backup" id="learning-backup" aria-labelledby="learning-backup-title">
+    <h2 id="learning-backup-title">保留一份备份</h2>
+    <p>把已读标记、书签、保存的笔记和练习记录导出为 JSON 文件。文件只保存在你的设备上，不会被上传。</p>
+    <div class="cnr-learning__actions">
+      <button class="cnr-learning__button cnr-learning__button--primary" type="button" data-learning-export>下载学习备份</button>
+    </div>
+    <label for="cnr-learning-import">从学习备份恢复</label>
+    <input id="cnr-learning-import" type="file" accept="application/json,.json" data-learning-import-file aria-describedby="cnr-learning-import-help">
+    <p id="cnr-learning-import-help" class="cnr-learning__muted">请选择不超过 6 MB 的备份文件。合并之前会先显示预览。已有的已读标记，以及内容不同的笔记，都会保留。</p>
+    <div class="cnr-learning__preview" data-learning-import-preview hidden role="region" aria-labelledby="cnr-learning-preview-title">
+      <h3 id="cnr-learning-preview-title">检查这份备份</h3>
+      <div data-learning-import-counts></div>
+      <div class="cnr-learning__actions">
+        <button class="cnr-learning__button cnr-learning__button--primary" type="button" data-learning-import-apply disabled>合并备份</button>
+        <button class="cnr-learning__button" type="button" data-learning-import-cancel>取消</button>
+      </div>
+    </div>
+    <p data-learning-backup-status role="status" aria-live="polite" class="cnr-learning__backup-status"></p>
+  </section>
+</main>
+{{ end }}

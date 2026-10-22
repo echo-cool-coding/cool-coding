@@ -1,0 +1,12 @@
+{{- $courses := slice -}}
+{{- range site.Data.tutorials -}}
+  {{- $tutorial := . -}}
+  {{- $lessons := slice -}}
+  {{- with site.GetPage (printf "/docs/%s" .dir) -}}
+    {{- range partialCached "flat.html" . $tutorial.dir -}}
+      {{- $lessons = $lessons | append (dict "path" .RelPermalink "title" (.Params.sidebar_label | default .Title)) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $courses = $courses | append (dict "id" .dir "label" (strings.TrimSuffix " 教程" .label) "url" .url "lessons" $lessons) -}}
+{{- end -}}
+{{- dict "v" 1 "courses" $courses | jsonify -}}

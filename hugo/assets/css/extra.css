@@ -43,6 +43,11 @@ html[data-theme="dark"] .cnr-search__backdrop { background: rgba(9, 10, 17, 0.8)
 @media (997px <= width < 1400px) {
   .theme-layout-navbar-right { display: flex; }
 }
+/* Phones: the right group stays hidden as before, except the sign-in / account widget (partials/account-menu.html). */
+@media (max-width: 996px) {
+  .theme-layout-navbar-right { display: flex; margin-left: auto; }
+  .theme-layout-navbar-right > :not(.cnr-auth):not(dialog) { display: none; }
+}
 
 /* WeChat float/popup: the module classes set display, so honour [hidden] explicitly. */
 [data-wechat-float][hidden], [data-wechat-modal][hidden] { display: none !important; }

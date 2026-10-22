@@ -1,0 +1,63 @@
+<div class="cnr-auth" data-auth-widget data-clarity-mask="True" data-pagefind-ignore>
+  <button type="button" class="cnr-auth__signin" data-auth-open aria-haspopup="dialog" aria-controls="cnr-auth-dialog">登录</button>
+  <button type="button" class="cnr-auth__avatar" data-auth-avatar aria-label="打开账户菜单" aria-expanded="false" aria-controls="cnr-account-menu" hidden><span data-auth-initials aria-hidden="true"></span></button>
+  <div id="cnr-account-menu" class="cnr-auth__menu" role="region" aria-label="账户菜单" data-auth-menu hidden>
+    <div class="cnr-auth__identity"><span>当前登录账户</span><strong data-auth-name></strong></div>
+    <a href="/profile/">个人资料与设置</a>
+    <a href="/learn/">我的学习</a>
+    <button type="button" data-auth-refresh hidden>重新连接</button>
+    <button type="button" data-auth-signout>退出登录</button>
+    <p class="cnr-auth__menu-status" data-auth-menu-status role="status"></p>
+  </div>
+</div>
+<dialog id="cnr-auth-dialog" class="cnr-auth-dialog" aria-labelledby="cnr-auth-title" aria-describedby="cnr-auth-description" data-auth-dialog data-clarity-mask="True" data-pagefind-ignore>
+  <div class="cnr-auth-dialog__head">
+    <div><p class="cnr-auth-dialog__eyebrow">代码酷</p><h2 id="cnr-auth-title">登录</h2></div>
+    <button type="button" class="cnr-auth-dialog__close" aria-label="关闭登录窗口" data-auth-close><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="m4 4 12 12M16 4 4 16" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+  </div>
+  <p id="cnr-auth-description" class="cnr-auth-dialog__description">未登录时，学习进度只保存在当前浏览器中；登录后会在你的所有设备间同步。</p>
+  <p class="cnr-auth-dialog__message" id="cnr-auth-message" data-auth-message role="status" aria-live="polite"></p>
+  <button type="button" class="cnr-auth-dialog__retry" data-auth-retry hidden>重新尝试连接</button>
+  <div class="cnr-auth-dialog__gsi" data-auth-google-gsi hidden></div>
+  <a href="/api/auth/google" class="cnr-auth-dialog__google" data-auth-google hidden><span class="cnr-auth-dialog__google-mark" aria-hidden="true">G</span>使用 Google 继续</a>
+  <a href="/api/auth/github" class="cnr-auth-dialog__google" data-auth-github hidden><svg class="cnr-auth-dialog__github-mark" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>使用 GitHub 继续</a>
+  <div class="cnr-auth-dialog__divider" data-auth-divider hidden><span>或使用邮箱</span></div>
+  <div data-auth-email hidden>
+    <form method="post" data-auth-form="login">
+      <label for="cnr-auth-login-email">邮箱</label>
+      <input id="cnr-auth-login-email" name="email" type="email" autocomplete="username" maxlength="254" required aria-describedby="cnr-auth-message">
+      <label for="cnr-auth-login-password">密码</label>
+      <input id="cnr-auth-login-password" name="password" type="password" autocomplete="current-password" maxlength="256" required aria-describedby="cnr-auth-message">
+      <button type="submit" class="cnr-auth-dialog__submit">登录</button>
+    </form>
+    <form method="post" data-auth-form="register" hidden>
+      <label for="cnr-auth-register-name">显示名称</label>
+      <input id="cnr-auth-register-name" name="name" autocomplete="nickname" maxlength="100" required aria-describedby="cnr-auth-message">
+      <label for="cnr-auth-register-email">邮箱</label>
+      <input id="cnr-auth-register-email" name="email" type="email" autocomplete="username" maxlength="254" required aria-describedby="cnr-auth-message">
+      <label for="cnr-auth-register-password">密码</label>
+      <input id="cnr-auth-register-password" name="password" type="password" autocomplete="new-password" maxlength="256" required aria-describedby="cnr-auth-password-help cnr-auth-message">
+      <p id="cnr-auth-password-help" class="cnr-auth-dialog__help">密码长度为 15–128 个字符，可以包含空格。</p>
+      <button type="submit" class="cnr-auth-dialog__submit">注册账户</button>
+    </form>
+    <form method="post" data-auth-form="forgot" hidden>
+      <p class="cnr-auth-dialog__help">如果该邮箱有对应的账户，我们会发送一封包含重置链接的邮件。</p>
+      <label for="cnr-auth-forgot-email">邮箱</label>
+      <input id="cnr-auth-forgot-email" name="email" type="email" autocomplete="username" maxlength="254" required aria-describedby="cnr-auth-message">
+      <button type="submit" class="cnr-auth-dialog__submit">发送重置链接</button>
+    </form>
+    <form method="post" data-auth-form="resend" hidden>
+      <p class="cnr-auth-dialog__help">重新发送验证邮件。打开邮件中的链接时，请输入你注册时设置的密码。</p>
+      <label for="cnr-auth-resend-email">邮箱</label>
+      <input id="cnr-auth-resend-email" name="email" type="email" autocomplete="username" maxlength="254" required aria-describedby="cnr-auth-message">
+      <button type="submit" class="cnr-auth-dialog__submit">重新发送验证邮件</button>
+    </form>
+    <div class="cnr-auth-dialog__switch">
+      <button type="button" data-auth-mode="login">返回登录</button>
+      <button type="button" data-auth-mode="register">注册账户</button>
+      <button type="button" data-auth-mode="forgot">忘记密码？</button>
+      <button type="button" data-auth-mode="resend">重新发送验证邮件</button>
+    </div>
+  </div>
+  <p class="cnr-auth-dialog__footer">不注册账户也可以继续学习。<a href="/profile/">账户帮助与设置</a></p>
+</dialog>

@@ -1,0 +1,122 @@
+{{ define "main" }}
+<main class="container cnr-profile" data-profile>
+  <header class="cnr-profile__hero">
+    <p class="cnr-profile__eyebrow">我的账户</p>
+    <h1>{{ .Title | default "个人资料" }}</h1>
+    <p>管理你的显示名称、登录方式和账户。登录期间，学习进度会自动同步。</p>
+  </header>
+  <noscript><p>账户功能需要 JavaScript。你仍然可以正常<a href="/">浏览全部教程</a>。</p></noscript>
+  <p data-profile-status class="cnr-profile__status" role="status" aria-live="polite">正在检查账户服务…</p>
+  <div class="cnr-profile__actions" data-profile-refresh-row hidden><button type="button" class="cnr-profile__button" data-profile-refresh>刷新账户连接</button></div>
+
+  <section class="cnr-profile__panel" data-profile-verify hidden aria-labelledby="profile-verify-title">
+    <h2 id="profile-verify-title">验证你的邮箱</h2>
+    <p>请输入你注册或添加此邮箱时设置的密码。只有在你点击按钮后才会进行验证。</p>
+    <form method="post" data-profile-form="verify">
+      <label for="profile-verify-password">为此邮箱设置的密码</label>
+      <input id="profile-verify-password" name="password" type="password" autocomplete="current-password" maxlength="256" required>
+      <button class="cnr-profile__button cnr-profile__button--primary" type="submit">验证邮箱</button>
+      <p data-profile-message role="status"></p>
+    </form>
+  </section>
+  <section class="cnr-profile__panel" data-profile-reset hidden aria-labelledby="profile-reset-title">
+    <h2 id="profile-reset-title">设置新密码</h2>
+    <p>这会修改重置链接所对应账户的密码，并让该账户在所有设备上退出登录。</p>
+    <form method="post" data-profile-form="reset">
+      <label for="profile-reset-password">新密码</label>
+      <input id="profile-reset-password" name="password" type="password" autocomplete="new-password" maxlength="256" required aria-describedby="profile-reset-help">
+      <p id="profile-reset-help" class="cnr-profile__muted">密码长度为 15–128 个字符。空格会被保留，不要求特定的符号组合。</p>
+      <label for="profile-reset-confirm">再次输入新密码</label>
+      <input id="profile-reset-confirm" name="confirm" type="password" autocomplete="new-password" maxlength="256" required>
+      <button class="cnr-profile__button cnr-profile__button--primary" type="submit">重置密码</button>
+      <p data-profile-message role="status"></p>
+    </form>
+  </section>
+
+  <section class="cnr-profile__panel cnr-profile__guest" data-profile-guest hidden aria-labelledby="profile-signin-title">
+    <h2 id="profile-signin-title">你还没有登录</h2>
+    <p>使用 Google 或 GitHub 登录，即可管理个人资料，并在多台设备间同步学习进度。不登录时，进度只保存在当前浏览器中。</p>
+    <div class="cnr-profile__actions">
+      <button type="button" class="cnr-profile__button cnr-profile__button--primary" data-auth-open aria-haspopup="dialog" aria-controls="cnr-auth-dialog">登录或注册</button>
+      <a class="cnr-profile__button" href="/learn/">以访客身份继续学习</a>
+    </div>
+  </section>
+
+  <section data-profile-member hidden aria-labelledby="profile-settings-title">
+    <div class="cnr-profile__panel">
+      <h2 id="profile-settings-title">个人资料设置</h2>
+      <p>当前登录账户：<strong data-profile-name></strong></p>
+      <p data-profile-email></p>
+      <p data-profile-verified class="cnr-profile__muted"></p>
+      <form method="post" data-profile-form="name">
+        <label for="profile-display-name">显示名称</label>
+        <input id="profile-display-name" name="name" type="text" autocomplete="nickname" maxlength="100" required>
+        <button class="cnr-profile__button cnr-profile__button--primary" type="submit">保存显示名称</button>
+        <p data-profile-message role="status"></p>
+      </form>
+    </div>
+    <div class="cnr-profile__panel" data-profile-methods>
+      <h2>登录方式</h2>
+      <p data-profile-google-status></p>
+      <div class="cnr-profile__actions">
+        <button type="button" class="cnr-profile__button" data-profile-link-google>关联 Google 账户</button>
+        <button type="button" class="cnr-profile__button" data-profile-unlink-google>取消关联 Google 账户</button>
+      </div>
+      <p data-profile-unlink-help class="cnr-profile__muted"></p>
+      <p data-profile-github-status></p>
+      <div class="cnr-profile__actions">
+        <button type="button" class="cnr-profile__button" data-profile-link-github>关联 GitHub 账户</button>
+        <button type="button" class="cnr-profile__button" data-profile-unlink-github>取消关联 GitHub 账户</button>
+      </div>
+      <p data-profile-github-help class="cnr-profile__muted"></p>
+      <button type="button" class="cnr-profile__button" data-profile-cancel-email hidden>取消待验证的邮箱</button>
+      <div data-profile-enrollment hidden>
+        <h3>添加邮箱登录</h3>
+        <p>设置邮箱和密码，然后通过验证邮件完成添加。已关联的 Google 或 GitHub 账户会保持关联。如果要更正尚未验证的邮箱，请用正确的邮箱重新提交。</p>
+        <form method="post" data-profile-form="enroll">
+          <label for="profile-enroll-email">邮箱地址</label>
+          <input id="profile-enroll-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+          <label for="profile-enroll-password">新密码</label>
+          <input id="profile-enroll-password" name="password" type="password" autocomplete="new-password" maxlength="256" required aria-describedby="profile-enroll-help">
+          <p id="profile-enroll-help" class="cnr-profile__muted">密码长度为 15–128 个字符。验证邮箱时需要再次输入这个密码。</p>
+          <label for="profile-enroll-confirm">再次输入密码</label>
+          <input id="profile-enroll-confirm" name="confirm" type="password" autocomplete="new-password" maxlength="256" required>
+          <button class="cnr-profile__button" type="submit">发送验证邮件</button>
+          <p data-profile-message role="status"></p>
+        </form>
+      </div>
+      <details class="cnr-profile__disclosure" data-profile-member-resend hidden>
+        <summary>重新发送验证邮件</summary>
+        <form method="post" data-profile-form="resend-member">
+          <label for="profile-member-resend-email">等待验证的邮箱地址</label>
+          <input id="profile-member-resend-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+          <button class="cnr-profile__button" type="submit">重新发送验证邮件</button>
+          <p data-profile-message role="status"></p>
+        </form>
+      </details>
+      <form method="post" data-profile-form="password" data-profile-password-form hidden>
+        <h3>修改密码</h3>
+        <label for="profile-current-password">当前密码</label>
+        <input id="profile-current-password" name="currentPassword" type="password" autocomplete="current-password" maxlength="256" required>
+        <label for="profile-new-password">新密码</label>
+        <input id="profile-new-password" name="newPassword" type="password" autocomplete="new-password" maxlength="256" required aria-describedby="profile-password-help">
+        <p id="profile-password-help" class="cnr-profile__muted">密码长度为 15–128 个字符。其他已登录的设备可能需要使用新密码。</p>
+        <label for="profile-new-confirm">再次输入新密码</label>
+        <input id="profile-new-confirm" name="confirm" type="password" autocomplete="new-password" maxlength="256" required>
+        <button class="cnr-profile__button" type="submit">修改密码</button>
+        <p data-profile-message role="status"></p>
+      </form>
+    </div>
+    <div class="cnr-profile__panel">
+      <h2>退出登录或删除账户</h2>
+      <p>退出登录后会回到此浏览器中独立的访客学习记录。账户中的学习记录会保留，下次登录时恢复。在共用设备上，建议使用无痕窗口。</p>
+      <button type="button" class="cnr-profile__button" data-profile-logout>退出登录</button>
+      <details class="cnr-profile__disclosure">
+        <summary>删除账户</summary>
+        <p>删除账户、账户中保存的学习记录以及所有登录方式。如果想保留一份独立副本，请先下载学习备份。访客学习记录会单独保留。</p>
+        <button type="button" class="cnr-profile__button cnr-profile__button--danger" data-profile-delete>删除我的账户</button>
+      </details>
+    </div>
+  </section>
+</main>
+{{ end }}

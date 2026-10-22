@@ -210,6 +210,9 @@
     giscus.appendChild(g);
   }
 
+  /* learning.js (loaded on every page with window.CNR_PAGE) owns read marks, sidebar checks and "继续学习" and keeps
+     guest and signed-in records apart; this original progress code only runs if learning.js is not on the page. */
+  if (!window.CNR_PAGE) {
   /* ---------- Learning progress: pages read, per-tutorial counts, "继续学习" on the home page (this browser only).
      Same feature and storage format as compilenrun.com (cnr_progress). Paths are compared decoded. ---------- */
   var escHtml = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -354,6 +357,7 @@
         cont.hidden = true;
       };
     }
+  }
   }
 
   /* ---------- WeChat follow float + popup (port of src/components/WechatFollow) ---------- */

@@ -45,12 +45,8 @@
                   </div>
                 </footer>
                 {{- if $tut }}
-                {{- /* Reading progress (main.js; hidden until it runs). */}}
-                <div class="cnr-learn" data-learn data-pagefind-ignore hidden>
-                  <div class="cnr-learn__actions">
-                    <button type="button" class="cnr-learn__done" data-mark-done aria-pressed="false"></button>
-                  </div>
-                </div>
+                {{- /* Read mark, bookmark and notes (learning.js reads window.CNR_PAGE; hidden until it runs). */}}
+                {{- if templates.Exists "partials/learning-tools.html" }}{{ partial "learning-tools.html" . }}{{ end }}
                 <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #e0e0e0">
                   <p style="font-size:0.95rem;line-height:1.6">💡 如果你在本站发现错误或笔误，欢迎点击 <strong>“编辑此页”</strong> 来修改。
                     你的反馈对我们非常重要，非常感谢！🙏</p>

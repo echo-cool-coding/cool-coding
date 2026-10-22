@@ -482,7 +482,17 @@ def main():
         if f.endswith('.js') and f != 'index.js':
             jsx_page(os.path.join(ROOT, 'src', 'pages', f), dates)
     open(os.path.join(OUT, 'search.md'), 'w').write('---\ntitle: Search the documentation\nurl: /search/\ntype: search\nrobots: noindex, follow\n---\n')
-    home = open(os.path.join(ROOT, 'src', 'pages', 'index.js'), encoding='utf8').read()
+    # Reader-account pages (layouts/learning, layouts/profile), same as compilenrun.com.
+    write_page(os.path.join(OUT, 'learn.md'), {
+        'title': '我的学习', 'url': '/learn/', 'type': 'learning',
+        'description': '继续学习你的课程，并在多台设备间同步学习进度。',
+    })
+    write_page(os.path.join(OUT, 'profile.md'), {
+        'title': '个人资料', 'url': '/profile/', 'type': 'profile',
+        'description': '管理你的代码酷个人资料、登录方式和账户设置。',
+        'robots': 'noindex, nofollow',
+    })
+    home =open(os.path.join(ROOT, 'src', 'pages', 'index.js'), encoding='utf8').read()
     write_page(os.path.join(OUT, '_index.md'), {
         'title': re.search(r'<Layout\s+title="([^"]*)"', home).group(1),
         'description': re.search(r'<Layout[^>]*?description="([^"]*)"', home, re.S).group(1),

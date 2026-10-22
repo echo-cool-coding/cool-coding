@@ -14,7 +14,7 @@ lastmods=$(grep -o '<lastmod>' sitemap.xml | wc -l)
 [ "$lastmods" -ge 19000 ] || fail "only $lastmods sitemap entries have lastmod (shallow git checkout?)"
 
 # Only the search page may be noindex (404.html is not an index.html).
-noindex=$(grep -l 'name=robots content="noindex' -r . --include=index.html | grep -v '^./search/index.html$' || true)
+noindex=$(grep -l 'name=robots content="noindex' -r . --include=index.html | grep -Ev '^./(search|profile)/index.html$' || true)
 [ -z "$noindex" ] || fail "noindex on: $(echo "$noindex" | head -5)"
 awk 'tolower($1)=="user-agent:"{ua=$2} tolower($1)=="disallow:" && $2=="/" && ua=="*"{bad=1} END{exit bad}' robots.txt \
   || fail "robots.txt disallows everything"

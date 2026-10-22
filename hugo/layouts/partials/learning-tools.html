@@ -1,0 +1,34 @@
+<section class="cnr-learning cnr-learning-tools" data-learning-tools data-pagefind-ignore hidden aria-label="本节课的学习记录">
+  <div class="cnr-learning__section-head">
+    <strong>我的学习</strong>
+    <a href="/learn/">打开学习面板</a>
+  </div>
+  <p class="cnr-learning__notice" data-learning-notice role="status" hidden></p>
+  <div class="cnr-learning__actions">
+    <button class="cnr-learning__button" type="button" data-mark-done aria-pressed="false">标记为已读</button>
+    <button class="cnr-learning__button" type="button" data-learning-bookmark aria-pressed="false">书签</button>
+    <button class="cnr-learning__button" type="button" data-learning-practiced>记录练习</button>
+    <button class="cnr-learning__button" type="button" data-learning-export>下载备份</button>
+  </div>
+  <p data-learning-backup-status role="status" class="cnr-learning__muted"></p>
+  <div data-learning-states></div>
+  <p class="cnr-learning__muted">阅读、练习和通过的检查是分开记录的。仅仅运行代码不算通过检查。</p>
+  <p data-learning-next class="cnr-learning__next"></p>
+  <details class="cnr-learning__editor">
+    <summary>我的课程笔记</summary>
+    <label for="cnr-learning-note">你学到了什么？下一步打算尝试什么？</label>
+    <textarea id="cnr-learning-note" data-learning-note rows="5" maxlength="20000" placeholder="给下次的自己写一条笔记…" aria-describedby="cnr-learning-note-help"></textarea>
+    <p id="cnr-learning-note-help" class="cnr-learning__muted">最多 20,000 个字符。笔记保存在当前浏览器中；登录后会自动同步，也可以在学习面板下载备份，把笔记带到其他设备。</p>
+    <p class="cnr-learning__notice" data-learning-note-conflict hidden></p>
+    <div class="cnr-learning__actions">
+      <button type="button" class="cnr-learning__button cnr-learning__button--primary" data-learning-save-note>保存笔记</button>
+      <button type="button" class="cnr-learning__button" data-learning-reload-note>重新载入已保存的笔记</button>
+    </div>
+    <p data-learning-note-status role="status" class="cnr-learning__muted"></p>
+  </details>
+  <details class="cnr-learning__editor">
+    <summary>练习记录</summary>
+    <ul class="cnr-learning__evidence" data-learning-evidence></ul>
+    <p class="cnr-learning__muted">通过的检查只记录该练习的结果，并不代表已经掌握整节课的内容。</p>
+  </details>
+</section>
