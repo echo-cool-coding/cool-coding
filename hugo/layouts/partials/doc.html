@@ -47,6 +47,23 @@
                 {{- if $tut }}
                 {{- /* Read mark, bookmark and notes (learning.js reads window.CNR_PAGE; hidden until it runs). */}}
                 {{- if templates.Exists "partials/learning-tools.html" }}{{ partial "learning-tools.html" . }}{{ end }}
+                {{- /* "开始测验" and "这个页面有帮助吗？" (main.js; hidden until it runs). The read mark lives in learning-tools. */}}
+                <div class="cnr-learn" data-learn data-pagefind-ignore hidden>
+                  <div class="cnr-learn__actions">
+                    <button type="button" class="cnr-learn__quiz" data-quiz hidden>🧠 开始测验</button>
+                  </div>
+                  <div class="cnr-learn__vote" role="group" aria-label="这个页面有帮助吗？">
+                    <span>这个页面有帮助吗？</span>
+                    <button type="button" data-vote="1" aria-pressed="false">👍 有</button>
+                    <button type="button" data-vote="-1" aria-pressed="false">👎 没有</button>
+                  </div>
+                  <form class="cnr-learn__comment" data-vote-comment hidden>
+                    <label for="cnr-vote-comment">哪些内容缺失、不清楚或有错误？（选填）</label>
+                    <textarea id="cnr-vote-comment" rows="3" maxlength="1000"></textarea>
+                    <button type="submit" class="button button--primary button--sm">发送反馈</button>
+                  </form>
+                  <p class="cnr-learn__thanks" data-vote-thanks hidden></p>
+                </div>
                 <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #e0e0e0">
                   <p style="font-size:0.95rem;line-height:1.6">💡 如果你在本站发现错误或笔误，欢迎点击 <strong>“编辑此页”</strong> 来修改。
                     你的反馈对我们非常重要，非常感谢！🙏</p>

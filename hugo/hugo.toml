@@ -20,6 +20,16 @@ timeout = "120s"
   # Google Identity Services (One Tap, automatic sign-in, the Sign in with Google button); the Worker verifies the credential.
   googleClientId = "1072237482521-hqchdphppq230u5agnavq59kvhjnr4iu.apps.googleusercontent.com"
   keywords = "学习编程, 编程, 代码酷, python, java, javascript, c, c++, sql, go"
+  # Ask AI chat and "开始测验" (Worker echocool-worker; the quiz endpoint is this one with /ask replaced by /quiz).
+  # Override with HUGO_PARAMS_ASKAI_ENDPOINT to point a local build at production.
+  [params.askAI]
+    endpoint = "/api/ask"
+    # Turnstile site key. This is compilenrun's widget; echo.cool must be added to that widget's hostnames in the
+    # Cloudflare dashboard (or the key swapped for a new echo.cool widget) before the challenge passes in production.
+    turnstileSitekey = "0x4AAAAAAFXVJb_GG6mWsgDx"
+  # "这个页面有帮助吗？" votes, stored by the same Worker. Override with HUGO_PARAMS_FEEDBACK_ENDPOINT.
+  [params.feedback]
+    endpoint = "/api/feedback"
 
 [module]
   [[module.mounts]]
