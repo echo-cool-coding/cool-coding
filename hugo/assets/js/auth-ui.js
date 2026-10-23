@@ -80,6 +80,10 @@
   const forms = dialog ? Array.from(dialog.querySelectorAll('[data-auth-form]')) : [];
   const wechatButton = dialog?.querySelector('[data-auth-wechat]'), wechatPanel = dialog?.querySelector('[data-auth-wechat-panel]');
   let wechatOpen = false, wechatLink = false;
+  // data-auth-default="wechat" on the dialog (代码酷): the login form opens straight on the WeChat QR code and
+  // the other sign-in methods stay available below it.
+  const wechatDefault = dialog?.dataset.authDefault === 'wechat';
+  const wechatSolo = () => wechatOpen && !(wechatDefault && !wechatLink); // the panel replaces the other methods
   const titles = { login: t('Sign in'), register: t('Create an account'), forgot: t('Reset your password'), resend: t('Verify your email') };
   let current = null, known = false, published = false, transitionFailed = false, actionPending = false, capabilities = { google: false, github: false, email: false, wechat: false };
   let inFlight = null, refreshController = null, initial = null, mutation = null, answered = false; // answered: a real server answer was validated
@@ -155,18 +159,20 @@
     }
     if(!dialog)return;
     dialog.setAttribute('aria-busy',String(busy||transitioning));
-    dialog.querySelector('[data-auth-google]').hidden=!capabilities.google||(Boolean(user)&&transitionFailed)||gsiButton||wechatOpen;
-    if(capabilities.google&&gsiButton)dialog.querySelector('[data-auth-google-gsi]').hidden=wechatOpen; // capabilities first: render() also runs before gsiButton is declared
+    dialog.querySelector('[data-auth-google]').hidden=!capabilities.google||(Boolean(user)&&transitionFailed)||gsiButton||wechatSolo();
+    if(capabilities.google&&gsiButton)dialog.querySelector('[data-auth-google-gsi]').hidden=wechatSolo(); // capabilities first: render() also runs before gsiButton is declared
     dialog.querySelector('[data-auth-google]').setAttribute('aria-disabled',String(busy||transitioning||transitionFailed));
-    dialog.querySelector('[data-auth-github]').hidden=!capabilities.github||(Boolean(user)&&transitionFailed)||wechatOpen;
+    dialog.querySelector('[data-auth-github]').hidden=!capabilities.github||(Boolean(user)&&transitionFailed)||wechatSolo();
     if(wechatButton){wechatButton.hidden=!capabilities.wechat||(Boolean(user)&&transitionFailed)||wechatOpen;wechatButton.disabled=busy||transitioning||transitionFailed;}
     if(wechatPanel)wechatPanel.hidden=!wechatOpen;
+    const wechatBack=wechatPanel?.querySelector('[data-auth-wechat-back]');if(wechatBack)wechatBack.hidden=wechatDefault&&!wechatLink;
+    const wechatOthers=dialog.querySelector('[data-auth-wechat-others]');if(wechatOthers)wechatOthers.hidden=!(wechatOpen&&wechatDefault&&!wechatLink&&(capabilities.google||capabilities.github||capabilities.email));
     dialog.querySelector('[data-auth-github]').setAttribute('aria-disabled',String(busy||transitioning||transitionFailed));
-    dialog.querySelector('[data-auth-email]').hidden=!capabilities.email||(Boolean(user)&&transitionFailed)||wechatOpen;
-    dialog.querySelector('[data-auth-divider]').hidden=!(capabilities.email&&(capabilities.google||capabilities.github||capabilities.wechat))||wechatOpen;
+    dialog.querySelector('[data-auth-email]').hidden=!capabilities.email||(Boolean(user)&&transitionFailed)||wechatSolo();
+    dialog.querySelector('[data-auth-divider]').hidden=!(capabilities.email&&(capabilities.google||capabilities.github||capabilities.wechat))||wechatSolo();
     dialog.querySelector('[data-auth-retry]').hidden=!transitionFailed&&Boolean(current?.configured && (capabilities.email||capabilities.google||capabilities.github||capabilities.wechat));
     dialog.querySelector('[data-auth-retry]').disabled=busy||Boolean(inFlight);
-    dialog.querySelector('#cnr-auth-title').textContent=transitionFailed&&user?t('Learning needs attention'):wechatOpen?(wechatLink?t('Link WeChat'):t('Sign in with WeChat')):titles[mode];
+    dialog.querySelector('#cnr-auth-title').textContent=transitionFailed&&user?t('Learning needs attention'):wechatOpen&&wechatSolo()?(wechatLink?t('Link WeChat'):t('Sign in with WeChat')):titles[mode];
     forms.forEach(form=>{
       form.hidden=form.dataset.authForm!==mode;
       form.querySelectorAll('input,button').forEach(control=>{control.disabled=busy||transitioning||transitionFailed||!capabilities.email;});
@@ -179,6 +185,7 @@
     // server's answer). Ownership is unchanged, so update the popup without a learning transition.
     if(published&&!actionPending&&!transitionFailed&&next&&current&&current.user===null&&next.user===null&&current.configured===next.configured){
       await transition;current=next;known=true;capabilities={...next.providers};if(next.configured)rememberProviders(next.providers);setHint(false);render();
+      if(wechatAuto())wechatBegin();
       if(dialog?.open&&!busy&&message?.textContent===t('Checking sign-in options…'))say('');
       return clone(current);
     }
@@ -295,8 +302,10 @@
     const field=capabilities.email?forms.find(form=>form.dataset.authForm===mode)?.querySelector('input'):dialog.querySelector('[data-auth-close]');field?.focus();
     // Opening a dialog reuses the initial/ongoing check and only refreshes stale discovery.
     refresh({force:false}).catch(()=>{});
-    if(viaWechat)wechatBegin();
+    if(viaWechat||wechatAuto())wechatBegin();
   }
+  // In WeChat-default mode the login form starts on the QR code as soon as WeChat is known to be available.
+  const wechatAuto=()=>wechatDefault&&dialog?.open&&mode==='login'&&!wechatOpen&&!current?.user&&capabilities.wechat&&!busy&&!transitioning&&!transitionFailed;
   async function perform(form) {
     if(busy||transitioning||transitionFailed||!capabilities.email||!form.reportValidity())return;
     const kind=form.dataset.authForm,fields=Object.fromEntries(new FormData(form));

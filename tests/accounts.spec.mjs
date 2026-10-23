@@ -129,23 +129,22 @@ test('/profile/ renders for a guest', async t => {
   assert.deepEqual(errors, []);
 });
 
-test('the popup offers 微信扫码登录 with the QR code when the Worker reports WeChat, and shows the code', async t => {
+test('the popup opens straight on 微信扫码登录: QR code and code shown, other methods kept below', async t => {
   const { page, errors } = await open(t, LESSON, { ...session, providers: { ...session.providers, wechat: true } });
   await page.locator('.navbar [data-auth-open]').click();
-  const button = page.locator('[data-auth-wechat]');
-  await button.waitFor({ state: 'visible' });
-  assert.equal((await button.textContent()).trim(), '微信扫码登录');
-  await button.click();
-  await page.locator('[data-auth-wechat-panel]').waitFor({ state: 'visible' });
+  await page.locator('[data-auth-wechat-panel]').waitFor({ state: 'visible' }); // no click needed: WeChat is the default view
   const qr = page.locator('[data-auth-wechat-qr]');
   assert.equal(await qr.isVisible(), true);
   assert.match(await qr.getAttribute('src'), /^\/img\/wechat-qrcode\.jpg$/);
   await page.waitForFunction(() => document.querySelector('[data-auth-wechat-code]').textContent === '483921');
-  assert.equal(await page.locator('#cnr-auth-title').textContent(), '微信扫码登录');
+  assert.equal(await page.locator('#cnr-auth-title').textContent(), '登录');
   assert.match(await page.locator('[data-auth-wechat-expires]').textContent(), /验证码将在 \d+:\d\d 后过期/);
-  assert.match(await page.locator('[data-auth-message]').textContent(), /用微信扫码关注公众号/);
-  assert.equal(await page.locator('[data-auth-github]').isVisible(), false);
-  await page.locator('[data-auth-wechat-back]').click();
-  await page.locator('[data-auth-github]').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-auth-wechat]').isVisible(), false, 'no separate WeChat button when the panel is the form');
+  assert.equal(await page.locator('[data-auth-wechat-back]').isVisible(), false, 'nothing to go back to');
+  assert.equal(await page.locator('[data-auth-wechat-others]').isVisible(), true);
+  assert.equal((await page.locator('[data-auth-wechat-others]').textContent()).trim(), '或使用其他方式登录');
+  assert.equal(await page.locator('[data-auth-github]').isVisible(), true, 'GitHub stays available below the QR code');
+  const panelBox = await page.locator('[data-auth-wechat-panel]').boundingBox(), githubBox = await page.locator('[data-auth-github]').boundingBox();
+  assert.ok(panelBox.y < githubBox.y, 'the QR code comes first');
   assert.deepEqual(errors, []);
 });
