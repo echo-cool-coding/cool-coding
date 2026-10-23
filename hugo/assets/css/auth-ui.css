@@ -45,3 +45,14 @@
 @media (max-width: 380px) { .cnr-auth__signin { padding: .35rem .5rem; font-size: .8rem; } .cnr-auth-dialog { padding: 1rem; } .cnr-auth-dialog__head h2 { font-size: 1.4rem; } }
 .cnr-auth-dialog__gsi { display: flex; justify-content: center; margin: .75rem 0; min-height: 44px; }
 .cnr-auth-dialog__gsi[hidden] { display: none; }
+.cnr-auth-dialog__wechat-mark { flex: 0 0 auto; color: #07c160; }
+.cnr-auth-dialog__wechat { margin: .75rem 0; text-align: center; }
+.cnr-auth-dialog__wechat-qr { display: block; width: 180px; height: 180px; margin: 0 auto .75rem; border: 1px solid var(--ifm-color-emphasis-200,#e0e6eb); border-radius: .5rem; background: #fff; object-fit: contain; }
+.cnr-auth-dialog__wechat-steps { margin: 0 0 .75rem; padding-left: 1.4rem; text-align: left; font-size: .88rem; }
+.cnr-auth-dialog__wechat-steps li + li { margin-top: .2rem; }
+.cnr-auth-dialog__wechat-code { min-height: 2.6rem; margin: .5rem 0 .25rem; font: 700 1.8rem/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing: .35em; padding-left: .35em; }
+.cnr-auth-dialog__wechat-expires,.cnr-auth-dialog__wechat-status { margin: .2rem 0; color: var(--ifm-color-emphasis-700,#536473); font-size: .8rem; }
+.cnr-auth-dialog__wechat-expires:empty,.cnr-auth-dialog__wechat-status:empty { display: none; }
+.cnr-auth-dialog__wechat-actions { display: flex; flex-direction: column; align-items: center; gap: .5rem; margin-top: .75rem; }
+.cnr-auth-dialog__wechat-actions .cnr-auth-dialog__submit { margin-top: 0; }
+.cnr-auth-dialog__wechat-actions .cnr-auth-dialog__retry { margin-bottom: 0; }

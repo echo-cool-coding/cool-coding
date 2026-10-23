@@ -8,11 +8,13 @@
   const ZH = {
     'A newer account action replaced this connection check.': '新的账户操作已取代本次连接检查。',
     'Checking sign-in options…': '正在检查登录方式…',
+    'Code expires in {time}': '验证码将在 {time} 后过期',
     'Could not connect to sign-in. Check your connection and try again.': '无法连接登录服务。请检查网络后重试。',
     'Create a free account to keep your progress, bookmarks and solved problems on every device. You can keep learning without one.': '注册免费账户，即可在所有设备上保留学习进度、书签和已解决的题目。不注册也可以继续学习。',
     'Create an account': '注册账户',
     'Email or password was not accepted. If you just registered, verify your email first.': '邮箱或密码不正确。如果刚刚注册，请先验证邮箱。',
     'Enter a valid email address.': '请输入有效的邮箱地址。',
+    'Getting a sign-in code…': '正在获取验证码…',
     'Google sign-in could not be verified. Please try again.': '无法验证 Google 登录。请重试。',
     'Google sign-in did not load.': 'Google 登录未能加载。',
     'If this address can be registered, a verification email will arrive shortly. Verify it before signing in.': '如果该邮箱可以注册，验证邮件将很快送达。请先完成验证再登录。',
@@ -20,6 +22,7 @@
     'If this address needs verification, a verification email will arrive shortly.': '如果该邮箱需要验证，验证邮件将很快送达。',
     'Learner': '学习者',
     'Learning needs attention': '学习记录需要处理',
+    'Link WeChat': '关联微信',
     'Open account menu for {name}': '打开 {name} 的账户菜单',
     'Opening GitHub sign-in…': '正在打开 GitHub 登录…',
     'Opening Google sign-in…': '正在打开 Google 登录…',
@@ -30,14 +33,17 @@
     'Reconnecting…': '正在重新连接…',
     'Reset your password': '重置密码',
     'Saved on this device. Sign in to keep your progress on every device, or close this to keep going as a guest.': '已保存在本设备。登录后可在所有设备上保留学习进度；也可以关闭此窗口，继续以访客身份学习。',
+    'Scan the QR code with WeChat to follow the account, then send this code in the chat:': '用微信扫码关注公众号，然后在对话框发送这个验证码：',
     'Sending your request…': '正在发送请求…',
     'Sign in': '登录',
+    'Sign in with WeChat': '微信扫码登录',
     'Sign-in could not be confirmed. Please try again.': '无法确认登录状态。请重试。',
     'Sign-in details could not be verified. Please try again.': '无法验证登录信息。请重试。',
     'Sign-in is busy right now. Please try again in a moment.': '登录服务繁忙，请稍后重试。',
     'Sign-in is unavailable right now. Please try again later.': '登录服务暂不可用，请稍后重试。',
     'Sign-in is unavailable right now. You can keep learning on this device.': '登录服务暂不可用。你可以继续在本设备上学习。',
     'Sign-out could not be confirmed. Please try again.': '无法确认退出登录。请重试。',
+    'Signed in with WeChat.': '已通过微信登录。',
     'Signing in with Google…': '正在使用 Google 登录…',
     'Signing in…': '正在登录…',
     'Signing out…': '正在退出登录…',
@@ -47,9 +53,14 @@
     'The sign-in response could not be verified. Please try again.': '无法验证登录响应。请重试。',
     'The signed-in account changed before progress could be saved. Review the current account before trying again.': '在保存进度之前，已登录的账户发生了变化。请先确认当前账户再重试。',
     'The signed-in account changed. Review the current account before trying again.': '已登录的账户发生了变化。请先确认当前账户再重试。',
+    'The WeChat code could not be verified. Please try again.': '无法验证微信验证码。请重试。',
+    'This code has expired.': '验证码已过期。',
+    'This WeChat account is already linked to another account.': '这个微信已关联到另一个账户。',
     'Use a display name of 1–100 characters.': '显示名称需为 1–100 个字符。',
     'Use a password with 15–128 characters. Spaces are kept.': '密码需为 15–128 个字符，空格会被保留。',
     'Verify your email': '验证邮箱',
+    'Waiting for your message…': '等待你在微信中发送验证码…',
+    'WeChat account linked.': '已关联微信。',
     'Your latest progress could not be synced. You are still signed in; retry before signing out.': '最新进度未能同步。你仍处于登录状态，请重试同步后再退出登录。',
     'Your learning could not be kept safely before this account change. Try connecting again, then retry.': '切换账户前未能安全保留你的学习记录。请重新连接后再试。',
     'Your learning could not finish switching. Try connecting again before continuing.': '学习记录未能完成切换。请重新连接后再继续。',
@@ -67,8 +78,10 @@
   const menuStatus = widget?.querySelector('[data-auth-menu-status]');
   const message = dialog?.querySelector('[data-auth-message]');
   const forms = dialog ? Array.from(dialog.querySelectorAll('[data-auth-form]')) : [];
+  const wechatButton = dialog?.querySelector('[data-auth-wechat]'), wechatPanel = dialog?.querySelector('[data-auth-wechat-panel]');
+  let wechatOpen = false, wechatLink = false;
   const titles = { login: t('Sign in'), register: t('Create an account'), forgot: t('Reset your password'), resend: t('Verify your email') };
-  let current = null, known = false, published = false, transitionFailed = false, actionPending = false, capabilities = { google: false, github: false, email: false };
+  let current = null, known = false, published = false, transitionFailed = false, actionPending = false, capabilities = { google: false, github: false, email: false, wechat: false };
   let inFlight = null, refreshController = null, initial = null, mutation = null, answered = false; // answered: a real server answer was validated
   let lastAttempt = 0, requestEpoch = 0, stateEpoch = 0, transition = Promise.resolve(), transitioning = false;
   let syncNotice = '', busy = false, mode = 'login', returnFocus = null, focusAvatarOnClose = false;
@@ -79,9 +92,9 @@
   const HINT='cnr_signed_in', PROVIDERS_KEY='cnr-auth-providers';
   const hinted=()=>new RegExp('(?:^|;\\s*)'+HINT+'=1(?:;|$)').test(document.cookie);
   function setHint(on){try{document.cookie=HINT+'='+(on?'1':'')+'; Path=/; Max-Age='+(on?2592000:0)+'; SameSite=Lax'+(location.protocol==='https:'?'; Secure':'');}catch(_){}}
-  function rememberProviders(p){try{localStorage.setItem(PROVIDERS_KEY,JSON.stringify({google:p.google===true,github:p.github===true,email:p.email===true}));}catch(_){}}
+  function rememberProviders(p){try{localStorage.setItem(PROVIDERS_KEY,JSON.stringify({google:p.google===true,github:p.github===true,email:p.email===true,wechat:p.wechat===true}));}catch(_){}}
   function guestSession(){let p=null;try{p=JSON.parse(localStorage.getItem(PROVIDERS_KEY));}catch(_){p=null;}
-    return {configured:true,providers:p&&typeof p==='object'?{google:p.google===true,github:p.github===true,email:p.email===true}:{google:true,github:true,email:true},user:null};}
+    return {configured:true,providers:p&&typeof p==='object'?{google:p.google===true,github:p.github===true,email:p.email===true,wechat:p.wechat===true}:{google:true,github:true,email:true,wechat:false},user:null};}
   const mustCheck=()=>hinted()||/^\/profile\//.test(location.pathname)||/[?&#]auth=/.test(location.search+location.hash);
   // Sign-in invitations (the popup and Google One Tap) share one snooze record.
   const INVITE_KEY='cnr-auth-invite',DAY=86400000;
@@ -95,18 +108,18 @@
   function fault(code, text) { const error = new Error(text); error.code = code; return error; }
   function validate(value) {
     if (!object(value) || typeof value.configured !== 'boolean' || (value.user !== null && !object(value.user))) throw fault('invalid_response',t('Sign-in details could not be verified. Please try again.'));
-    const providers = object(value.providers) ? { google: value.providers.google === true, github: value.providers.github === true, email: value.providers.email === true } : { google: value.googleConfigured === true, github: false, email: value.emailConfigured === true };
-    if (value.user === null) return { configured: value.configured, providers: value.configured ? providers : { google: false, github: false, email: false }, user: null };
+    const providers = object(value.providers) ? { google: value.providers.google === true, github: value.providers.github === true, email: value.providers.email === true, wechat: value.providers.wechat === true } : { google: value.googleConfigured === true, github: false, email: value.emailConfigured === true, wechat: false };
+    if (value.user === null) return { configured: value.configured, providers: value.configured ? providers : { google: false, github: false, email: false, wechat: false }, user: null };
     const user = value.user;
     if (!value.configured || !plain(user.id,200) || !plain(user.name,100,true) ||
         !(user.email === undefined || user.email === null || plain(user.email,254)) ||
         typeof user.emailVerified !== 'boolean' || typeof user.hasPassword !== 'boolean' || typeof user.googleLinked !== 'boolean' || !(user.googleEmail === undefined || user.googleEmail === null || plain(user.googleEmail,254)) ||
-        !(user.githubLinked === undefined || typeof user.githubLinked === 'boolean') || !(user.githubLogin === undefined || user.githubLogin === null || plain(user.githubLogin,39)) || !plain(value.csrfToken,500)) {
+        !(user.githubLinked === undefined || typeof user.githubLinked === 'boolean') || !(user.githubLogin === undefined || user.githubLogin === null || plain(user.githubLogin,39)) || !(user.wechatLinked === undefined || typeof user.wechatLinked === 'boolean') || !plain(value.csrfToken,500)) {
       throw fault('invalid_response',t('Sign-in details could not be verified. Please try again.'));
     }
     return { configured: value.configured, providers, user: { id: user.id, name: user.name, email: user.email || null,
       emailVerified: user.emailVerified, hasPassword: user.hasPassword, googleLinked: user.googleLinked, googleEmail: user.googleLinked && user.googleEmail || null,
-      githubLinked: user.githubLinked === true, githubLogin: user.githubLinked === true && user.githubLogin || null }, csrfToken: value.csrfToken };
+      githubLinked: user.githubLinked === true, githubLogin: user.githubLinked === true && user.githubLogin || null, wechatLinked: user.wechatLinked === true }, csrfToken: value.csrfToken };
   }
   function clearPasswords() { dialog?.querySelectorAll('input[type="password"]').forEach(input=>{input.value='';}); }
   function say(text, error = false) { if(message){message.textContent=text;message.dataset.error=String(error);} }
@@ -142,15 +155,18 @@
     }
     if(!dialog)return;
     dialog.setAttribute('aria-busy',String(busy||transitioning));
-    dialog.querySelector('[data-auth-google]').hidden=!capabilities.google||(Boolean(user)&&transitionFailed)||gsiButton;
+    dialog.querySelector('[data-auth-google]').hidden=!capabilities.google||(Boolean(user)&&transitionFailed)||gsiButton||wechatOpen;
+    if(capabilities.google&&gsiButton)dialog.querySelector('[data-auth-google-gsi]').hidden=wechatOpen; // capabilities first: render() also runs before gsiButton is declared
     dialog.querySelector('[data-auth-google]').setAttribute('aria-disabled',String(busy||transitioning||transitionFailed));
-    dialog.querySelector('[data-auth-github]').hidden=!capabilities.github||(Boolean(user)&&transitionFailed);
+    dialog.querySelector('[data-auth-github]').hidden=!capabilities.github||(Boolean(user)&&transitionFailed)||wechatOpen;
+    if(wechatButton){wechatButton.hidden=!capabilities.wechat||(Boolean(user)&&transitionFailed)||wechatOpen;wechatButton.disabled=busy||transitioning||transitionFailed;}
+    if(wechatPanel)wechatPanel.hidden=!wechatOpen;
     dialog.querySelector('[data-auth-github]').setAttribute('aria-disabled',String(busy||transitioning||transitionFailed));
-    dialog.querySelector('[data-auth-email]').hidden=!capabilities.email||(Boolean(user)&&transitionFailed);
-    dialog.querySelector('[data-auth-divider]').hidden=!(capabilities.email&&(capabilities.google||capabilities.github));
-    dialog.querySelector('[data-auth-retry]').hidden=!transitionFailed&&Boolean(current?.configured && (capabilities.email||capabilities.google||capabilities.github));
+    dialog.querySelector('[data-auth-email]').hidden=!capabilities.email||(Boolean(user)&&transitionFailed)||wechatOpen;
+    dialog.querySelector('[data-auth-divider]').hidden=!(capabilities.email&&(capabilities.google||capabilities.github||capabilities.wechat))||wechatOpen;
+    dialog.querySelector('[data-auth-retry]').hidden=!transitionFailed&&Boolean(current?.configured && (capabilities.email||capabilities.google||capabilities.github||capabilities.wechat));
     dialog.querySelector('[data-auth-retry]').disabled=busy||Boolean(inFlight);
-    dialog.querySelector('#cnr-auth-title').textContent=transitionFailed&&user?t('Learning needs attention'):titles[mode];
+    dialog.querySelector('#cnr-auth-title').textContent=transitionFailed&&user?t('Learning needs attention'):wechatOpen?(wechatLink?t('Link WeChat'):t('Sign in with WeChat')):titles[mode];
     forms.forEach(form=>{
       form.hidden=form.dataset.authForm!==mode;
       form.querySelectorAll('input,button').forEach(control=>{control.disabled=busy||transitioning||transitionFailed||!capabilities.email;});
@@ -271,13 +287,15 @@
   function closeDialog(success=false) {if(!dialog?.open)return;focusAvatarOnClose=success;dialog.close();}
   function openDialog(next='login',trigger=openButton) {
     if(!dialog)return;
-    if(current?.user){openMenu(true);return;}
+    const viaWechat=next==='wechat'&&capabilities.wechat&&!transitionFailed;
+    if(current?.user&&!viaWechat){openMenu(true);return;}
     closeMenu();returnFocus=trigger;mode=titles[next]?next:'login';clearPasswords();render();
     say(transitionFailed?t('Your learning could not finish switching. Try connecting again before continuing.'):current?.configured?'':known?t('Sign-in is unavailable right now. You can keep learning on this device.'):t('Checking sign-in options…'),transitionFailed);
     if(!dialog.open)dialog.showModal();
     const field=capabilities.email?forms.find(form=>form.dataset.authForm===mode)?.querySelector('input'):dialog.querySelector('[data-auth-close]');field?.focus();
     // Opening a dialog reuses the initial/ongoing check and only refreshes stale discovery.
     refresh({force:false}).catch(()=>{});
+    if(viaWechat)wechatBegin();
   }
   async function perform(form) {
     if(busy||transitioning||transitionFailed||!capabilities.email||!form.reportValidity())return;
@@ -331,6 +349,84 @@
     mutation=operation;
     try{return await operation;}finally{if(mutation===operation)mutation=null;}
   }
+  // WeChat Official Account sign-in: the reader follows the account and sends a short code in the chat; the page
+  // polls until the Worker has seen it. Signed-in readers use the same panel to link WeChat to their account.
+  let wechatEpoch=0,wechatPoll=null,wechatTick=null,wechatController=null,wechatGate=false,wechatCode='';
+  const wechatEl=name=>wechatPanel?.querySelector('[data-auth-wechat-'+name+']');
+  function wechatStop(){clearTimeout(wechatPoll);clearInterval(wechatTick);wechatPoll=wechatTick=null;wechatController?.abort();wechatController=null;}
+  function wechatStatus(text){const el=wechatEl('status');if(el)el.textContent=text;}
+  function wechatHalt(text,error=true){wechatStop();wechatStatus('');const expires=wechatEl('expires');if(expires)expires.textContent='';say(text,error);const renew=wechatEl('renew');if(renew){renew.hidden=false;renew.disabled=false;}}
+  // Leaving the panel before sign-in finished: tell learning the login did not happen, as a failed password login does.
+  function wechatRelease(){if(!wechatGate)return;wechatGate=false;fetchSession({force:true,reason:'login-failed'}).catch(()=>{});}
+  function wechatClose(){wechatEpoch++;wechatStop();wechatOpen=false;wechatCode='';wechatRelease();}
+  function wechatShow(){
+    wechatOpen=true;wechatLink=Boolean(current?.user);clearPasswords();
+    const code=wechatEl('code'),expires=wechatEl('expires'),renew=wechatEl('renew');
+    if(code)code.textContent='';if(expires)expires.textContent='';if(renew)renew.hidden=true;wechatStatus('');
+    render();wechatEl('back')?.focus();
+  }
+  async function wechatBegin(){
+    if(!wechatPanel||busy||transitioning||transitionFailed||!capabilities.wechat)return;
+    wechatShow();await wechatStart();
+  }
+  async function wechatStart(){
+    const epoch=++wechatEpoch;wechatStop();wechatCode='';
+    const code=wechatEl('code'),renew=wechatEl('renew');if(code)code.textContent='';if(renew){renew.hidden=true;}
+    say(t('Getting a sign-in code…'));
+    try{
+      // Signing in changes who owns this browser's learning, so learning gets its chance first (as the Google button does).
+      if(!wechatLink&&!wechatGate){wechatGate=true;await beforeAction('wechat');}
+      if(epoch!==wechatEpoch)return;
+      const result=await request('/api/auth/wechat/start','POST',{},current?.user?current:undefined);
+      if(epoch!==wechatEpoch)return;
+      if(!object(result)||typeof result.code!=='string'||!/^\d{6}$/.test(result.code)||typeof result.expiresAt!=='number')throw fault('invalid_response',t('The WeChat code could not be verified. Please try again.'));
+      wechatCode=result.code;if(code)code.textContent=result.code;
+      say(t('Scan the QR code with WeChat to follow the account, then send this code in the chat:'));wechatStatus(t('Waiting for your message…'));
+      // The server's clock decides; a skewed local clock only falls back to five minutes, and the server still says 'expired'.
+      let left=result.expiresAt-Date.now();if(!(left>0&&left<=3600000))left=300000;
+      const until=Date.now()+left,expires=wechatEl('expires');
+      const tick=()=>{const s=Math.max(0,Math.ceil((until-Date.now())/1000));if(expires)expires.textContent=t('Code expires in {time}',{time:Math.floor(s/60)+':'+String(s%60).padStart(2,'0')});if(s<=0&&epoch===wechatEpoch)wechatHalt(t('This code has expired.'));};
+      tick();wechatTick=setInterval(tick,1000);
+      wechatSchedule(epoch);
+    }catch(error){
+      if(epoch!==wechatEpoch)return;
+      if(error.code==='learning_transition_failed'){wechatGate=false;wechatStop();transitionFailed=true;say(error.message,true);render();dialog.querySelector('[data-auth-retry]').hidden=false;return;}
+      wechatHalt(error.message);
+    }
+  }
+  function wechatSchedule(epoch){wechatPoll=setTimeout(()=>{wechatCheck(epoch);},typeof window.CNR_WECHAT_POLL_MS==='number'?window.CNR_WECHAT_POLL_MS:2000);}
+  async function wechatCheck(epoch){
+    if(epoch!==wechatEpoch||!wechatOpen||!dialog?.open)return;
+    const controller=new AbortController();wechatController=controller;
+    let value;
+    try{value=await request('/api/auth/wechat/status?code='+encodeURIComponent(wechatCode),'GET',undefined,undefined,controller.signal);}
+    catch(error){if(epoch===wechatEpoch)wechatHalt(error.message);return;}
+    finally{if(wechatController===controller)wechatController=null;}
+    if(epoch!==wechatEpoch)return;
+    const status=object(value)?value.status:'';
+    if(status==='pending'){wechatSchedule(epoch);return;}
+    if(status==='expired'){wechatHalt(t('This code has expired.'));return;}
+    if(status==='conflict'){wechatHalt(t('This WeChat account is already linked to another account.'));return;}
+    if(status!=='done'&&status!=='linked'){wechatHalt(t('The WeChat code could not be verified. Please try again.'));return;}
+    wechatStop();wechatStatus('');
+    const linking=status==='linked';wechatGate=false;busy=true;render();
+    const operation=(async()=>{
+      try{
+        if(!linking)invalidateRefresh();
+        const next=await fetchSession({force:true,reason:linking?'refresh':'login'});
+        if(!next?.user)throw fault('authentication_required',t('Sign-in could not be confirmed. Please try again.'));
+        say(linking?t('WeChat account linked.'):t('Signed in with WeChat.'));
+        if(dialog?.open)closeDialog(true);
+      }catch(error){
+        say(error.message,true);
+        if(error.code==='learning_transition_failed'){transitionFailed=true;render();dialog.querySelector('[data-auth-retry]').hidden=false;}
+        else if(!linking){try{await fetchSession({force:true,reason:'login-failed'});}catch(_){} }
+        throw error;
+      }finally{busy=false;render();}
+    })();
+    mutation=operation;
+    try{await operation;}catch(_){}finally{if(mutation===operation)mutation=null;}
+  }
 
   window.CNRAuth=Object.freeze({
     ready:()=>initial, getSession:()=>clone(current), refresh, signOut,
@@ -350,7 +446,7 @@
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!menu.hidden&&!dialog.open){event.preventDefault();closeMenu(true);}});
     dialog.querySelector('[data-auth-close]').addEventListener('click',()=>closeDialog());
     dialog.addEventListener('close',()=>{
-      clearPasswords();
+      clearPasswords();if(wechatOpen){wechatClose();render();}
       const target=focusAvatarOnClose&&!avatar.hidden?avatar:returnFocus&&returnFocus.isConnected&&returnFocus.getClientRects().length?returnFocus:!avatar.hidden?avatar:openButton;
       focusAvatarOnClose=false;requestAnimationFrame(()=>target?.focus());
     });
@@ -365,6 +461,13 @@
       event.preventDefault();if(busy||transitioning||transitionFailed||!capabilities.google)return;
       busy=true;clearPasswords();render();say(t('Opening Google sign-in…'));
       beforeAction('google').then(()=>location.assign('/api/auth/google')).catch(error=>{busy=false;transitionFailed=true;say(error.message,true);render();});
+    });
+    wechatButton?.addEventListener('click',event=>{event.preventDefault();wechatBegin();});
+    wechatEl('renew')?.addEventListener('click',()=>{if(wechatOpen&&!busy)wechatStart();});
+    wechatEl('back')?.addEventListener('click',()=>{
+      if(busy)return;
+      if(wechatLink){closeDialog();return;} // signed-in readers came only for WeChat; the sign-in options are not theirs
+      wechatClose();say('');render();wechatButton?.focus();
     });
     dialog.querySelector('[data-auth-retry]').addEventListener('click',()=>{say(t('Checking sign-in options…'));refresh({force:true}).then(next=>{say(next?.configured?'':t('Sign-in is unavailable right now. You can keep learning on this device.'));}).catch(()=>{});});
     forms.forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();perform(form);}));
@@ -381,7 +484,7 @@
     const pages=Number(session.get('pages')||0)+1;session.set('pages',String(pages));
     const delay=typeof window.CNR_INVITE_DELAY_MS==='number'?window.CNR_INVITE_DELAY_MS:25000;
     let invited=false,timer=null;
-    const eligible=()=>!session.get('shown')&&!inviteSnoozed()&&!oneTapDisplayed&&known&&!current?.user&&!transitionFailed&&!busy&&!dialog.open&&document.visibilityState==='visible'&&(capabilities.google||capabilities.github||capabilities.email);
+    const eligible=()=>!session.get('shown')&&!inviteSnoozed()&&!oneTapDisplayed&&known&&!current?.user&&!transitionFailed&&!busy&&!dialog.open&&document.visibilityState==='visible'&&(capabilities.google||capabilities.github||capabilities.email||capabilities.wechat);
     function show(text){
       if(!eligible())return;
       session.set('shown','1');invited=true;

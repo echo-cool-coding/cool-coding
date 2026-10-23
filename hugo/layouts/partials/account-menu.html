@@ -21,6 +21,22 @@
   <div class="cnr-auth-dialog__gsi" data-auth-google-gsi hidden></div>
   <a href="/api/auth/google" class="cnr-auth-dialog__google" data-auth-google hidden><span class="cnr-auth-dialog__google-mark" aria-hidden="true">G</span>使用 Google 继续</a>
   <a href="/api/auth/github" class="cnr-auth-dialog__google" data-auth-github hidden><svg class="cnr-auth-dialog__github-mark" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>使用 GitHub 继续</a>
+  <button type="button" class="cnr-auth-dialog__google" data-auth-wechat hidden><svg class="cnr-auth-dialog__wechat-mark" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.5 4C5.36 4 2 6.83 2 10.3c0 1.9 1 3.6 2.6 4.75l-.65 2.3 2.7-1.4c.9.28 1.85.45 2.85.45h.36a5.3 5.3 0 0 1-.2-1.4c0-3.42 3.3-6.2 7.37-6.2.3 0 .58.02.87.05C17.2 6.02 13.7 4 9.5 4Zm-2.75 4.2a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm5.5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM16.9 10c-3.36 0-6.1 2.28-6.1 5.1 0 2.81 2.74 5.1 6.1 5.1.8 0 1.57-.13 2.27-.36L21.4 21l-.55-1.9C22.1 18.16 23 16.7 23 15.1c0-2.82-2.73-5.1-6.1-5.1Zm-2.1 3.3a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Zm4.2 0a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Z"/></svg>微信扫码登录</button>
+  <div class="cnr-auth-dialog__wechat" data-auth-wechat-panel hidden>
+    <img class="cnr-auth-dialog__wechat-qr" data-auth-wechat-qr {{ with site.Data.site.wechat }}{{ with .qrImage }}src="{{ printf "/%s" . }}" {{ end }}{{ end }}alt="微信公众号二维码" width="180" height="180" loading="lazy" draggable="false">
+    <ol class="cnr-auth-dialog__wechat-steps">
+      <li>打开微信，扫描上方二维码。</li>
+      <li>关注公众号。</li>
+      <li>在公众号对话框中发送下面的验证码。</li>
+    </ol>
+    <p class="cnr-auth-dialog__wechat-code" data-auth-wechat-code aria-label="验证码"></p>
+    <p class="cnr-auth-dialog__wechat-expires" data-auth-wechat-expires aria-live="off"></p>
+    <p class="cnr-auth-dialog__wechat-status" data-auth-wechat-status role="status"></p>
+    <div class="cnr-auth-dialog__wechat-actions">
+      <button type="button" class="cnr-auth-dialog__submit" data-auth-wechat-renew hidden>刷新验证码</button>
+      <button type="button" class="cnr-auth-dialog__retry" data-auth-wechat-back>返回</button>
+    </div>
+  </div>
   <div class="cnr-auth-dialog__divider" data-auth-divider hidden><span>或使用邮箱</span></div>
   <div data-auth-email hidden>
     <form method="post" data-auth-form="login">

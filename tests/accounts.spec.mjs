@@ -38,14 +38,20 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
-async function open(t, url) {
+async function open(t, url, reply = session) {
   const context = await browser.newContext({ locale: 'zh-CN' });
   t.after(() => context.close());
   const sessionCalls = [];
   // No third-party scripts (ads, analytics, Google Identity Services) in a local smoke test.
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort());
-  await context.route('**/api/auth/session', route => { sessionCalls.push(route.request().url()); route.fulfill({ contentType: 'application/json', body: JSON.stringify(session) }); });
-  await context.route('**/api/**', route => route.request().url().includes('/api/auth/session') ? route.fallback() : route.fulfill({ status: 401, contentType: 'application/json', body: '{"error":"authentication_required"}' }));
+  await context.route('**/api/auth/session', route => { sessionCalls.push(route.request().url()); route.fulfill({ contentType: 'application/json', body: JSON.stringify(reply) }); });
+  await context.route('**/api/**', route => {
+    const url = route.request().url();
+    if (url.includes('/api/auth/session')) return route.fallback();
+    if (url.includes('/api/auth/wechat/start')) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ code: '483921', expiresAt: Date.now() + 300000 }) });
+    if (url.includes('/api/auth/wechat/status')) return route.fulfill({ contentType: 'application/json', body: '{"status":"pending"}' });
+    return route.fulfill({ status: 401, contentType: 'application/json', body: '{"error":"authentication_required"}' });
+  });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -120,5 +126,26 @@ test('/profile/ renders for a guest', async t => {
   assert.match(await page.locator('[data-profile-guest] h2').textContent(), /你还没有登录/);
   assert.equal(await page.locator('[data-profile-member]').isVisible(), false);
   assert.equal(await page.locator('meta[name=referrer]').getAttribute('content'), 'no-referrer');
+  assert.deepEqual(errors, []);
+});
+
+test('the popup offers 微信扫码登录 with the QR code when the Worker reports WeChat, and shows the code', async t => {
+  const { page, errors } = await open(t, LESSON, { ...session, providers: { ...session.providers, wechat: true } });
+  await page.locator('.navbar [data-auth-open]').click();
+  const button = page.locator('[data-auth-wechat]');
+  await button.waitFor({ state: 'visible' });
+  assert.equal((await button.textContent()).trim(), '微信扫码登录');
+  await button.click();
+  await page.locator('[data-auth-wechat-panel]').waitFor({ state: 'visible' });
+  const qr = page.locator('[data-auth-wechat-qr]');
+  assert.equal(await qr.isVisible(), true);
+  assert.match(await qr.getAttribute('src'), /^\/img\/wechat-qrcode\.jpg$/);
+  await page.waitForFunction(() => document.querySelector('[data-auth-wechat-code]').textContent === '483921');
+  assert.equal(await page.locator('#cnr-auth-title').textContent(), '微信扫码登录');
+  assert.match(await page.locator('[data-auth-wechat-expires]').textContent(), /验证码将在 \d+:\d\d 后过期/);
+  assert.match(await page.locator('[data-auth-message]').textContent(), /用微信扫码关注公众号/);
+  assert.equal(await page.locator('[data-auth-github]').isVisible(), false);
+  await page.locator('[data-auth-wechat-back]').click();
+  await page.locator('[data-auth-github]').waitFor({ state: 'visible' });
   assert.deepEqual(errors, []);
 });

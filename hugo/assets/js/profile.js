@@ -29,10 +29,13 @@
     'Keep GitHub linked until you have another way to sign in: a verified email and password, or a linked Google account.': '在拥有其他登录方式（已验证的邮箱和密码，或已关联的 Google 账户）之前，请保留 GitHub 关联。',
     'Keep Google linked until you have another way to sign in: a verified email and password, or a linked GitHub account.': '在拥有其他登录方式（已验证的邮箱和密码，或已关联的 GitHub 账户）之前，请保留 Google 关联。',
     'Linking GitHub adds a sign-in method to this same account; it does not combine different accounts.': '关联 GitHub 会为当前账户增加一种登录方式，不会合并不同的账户。',
+    'Keep WeChat linked until you have another way to sign in: a verified email and password, or a linked Google or GitHub account.': '在拥有其他登录方式（已验证的邮箱和密码，或已关联的 Google 或 GitHub 账户）之前，请保留微信关联。',
     'Linking Google adds a sign-in method to this same account; it does not combine different accounts or upload browser learning.': '关联 Google 会为当前账户增加一种登录方式，不会合并不同的账户，也不会上传浏览器中的学习记录。',
+    'Linking WeChat adds a sign-in method to this same account; it does not combine different accounts.': '关联微信会为当前账户增加一种登录方式，不会合并不同的账户。',
     'No email sign-in has been added.': '尚未添加邮箱登录。',
     'No GitHub account is linked.': '未关联 GitHub 账户。',
     'No Google account is linked.': '未关联 Google 账户。',
+    'No WeChat account is linked.': '未关联微信公众号。',
     'Open a fresh reset link from your email.': '请打开邮件中最新的重置链接。',
     'Open a fresh verification link from your email.': '请打开邮件中最新的验证链接。',
     'Password changed. Use the new password when signing in again.': '密码已修改。再次登录时请使用新密码。',
@@ -61,7 +64,10 @@
     'This reset link could not be used. Request a new reset link and try again.': '此重置链接无法使用。请重新申请重置链接后再试。',
     'This sign-in method could not be unlinked. Keep another way to sign in (a verified email and password, or another linked account) before removing it.': '无法解除此登录方式。解除前请确保保留另一种登录方式（已验证的邮箱和密码，或其他已关联的账户）。',
     'Unlink {provider} and sign this account out on all devices? You will sign in again with your remaining sign-in method.': '确定解除 {provider} 关联，并在所有设备上退出此账户吗？之后需要使用剩余的登录方式重新登录。',
+    'Unlink WeChat and sign this account out on all devices? You will sign in again with your remaining sign-in method.': '确定解除微信关联，并在所有设备上退出此账户吗？之后需要使用剩余的登录方式重新登录。',
     'Use a password with 15–128 characters. Spaces are kept.': '密码需为 15–128 个字符，空格会被保留。',
+    'WeChat was unlinked. Sign in again with your remaining sign-in method.': '已解除微信关联。请使用剩余的登录方式重新登录。',
+    'WeChat is linked through the Official Account.': '已关联微信公众号。',
     'Working…': '处理中…',
     'Your account connection could not be verified. Refresh it and try again.': '无法验证账户连接。请刷新后重试。',
     'Your account was deleted. Browser learning was not erased.': '你的账户已删除。浏览器中的学习记录未被清除。',
@@ -106,16 +112,16 @@
   function formNamed(name) { return forms.find(function (form) { return form.getAttribute('data-profile-form') === name; }); }
   function validateSession(value) {
     if (!object(value) || typeof value.configured !== 'boolean' || (value.user !== null && !object(value.user))) throw error(t('Your account connection could not be verified. Refresh it and try again.'), 'invalid_response');
-    var providers = object(value.providers) ? { google: value.providers.google === true, github: value.providers.github === true, email: value.providers.email === true } : { google: value.configured, github: false, email: false };
+    var providers = object(value.providers) ? { google: value.providers.google === true, github: value.providers.github === true, email: value.providers.email === true, wechat: value.providers.wechat === true } : { google: value.configured, github: false, email: false, wechat: false };
     if (value.user === null) return { configured: value.configured, providers: providers, user: null };
     var u = value.user;
     if (typeof u.id !== 'string' || !u.id || u.id.length > 200 || typeof u.name !== 'string' || u.name.length > 100 ||
         !(u.email === null || typeof u.email === 'string' && u.email.length <= 254) ||
         typeof u.emailVerified !== 'boolean' || typeof u.hasPassword !== 'boolean' || typeof u.googleLinked !== 'boolean' ||
         !(u.googleEmail === undefined || u.googleEmail === null || typeof u.googleEmail === 'string' && u.googleEmail.length <= 254) ||
-        !(u.githubLinked === undefined || typeof u.githubLinked === 'boolean') || !(u.githubLogin === undefined || u.githubLogin === null || typeof u.githubLogin === 'string' && u.githubLogin.length <= 39) ||
+        !(u.githubLinked === undefined || typeof u.githubLinked === 'boolean') || !(u.githubLogin === undefined || u.githubLogin === null || typeof u.githubLogin === 'string' && u.githubLogin.length <= 39) || !(u.wechatLinked === undefined || typeof u.wechatLinked === 'boolean') ||
         typeof value.csrfToken !== 'string' || !value.csrfToken || value.csrfToken.length > 500) throw error(t('Account details could not be read safely. Refresh your connection before making changes.'), 'invalid_response');
-    return { configured: value.configured, providers: providers, user: { id: u.id, name: u.name, email: u.email, emailVerified: u.emailVerified, hasPassword: u.hasPassword, googleLinked: u.googleLinked, googleEmail: u.googleLinked && u.googleEmail || null, githubLinked: u.githubLinked === true, githubLogin: u.githubLinked === true && u.githubLogin || null }, csrfToken: value.csrfToken };
+    return { configured: value.configured, providers: providers, user: { id: u.id, name: u.name, email: u.email, emailVerified: u.emailVerified, hasPassword: u.hasPassword, googleLinked: u.googleLinked, googleEmail: u.googleLinked && u.googleEmail || null, githubLinked: u.githubLinked === true, githubLogin: u.githubLinked === true && u.githubLogin || null, wechatLinked: u.wechatLinked === true }, csrfToken: value.csrfToken };
   }
   function accept(value, fill) {
     var next = validateSession(value), previousID = session && session.user && session.user.id;
@@ -123,10 +129,11 @@
     session = next; render(fill || previousID !== (next.user && next.user.id));
   }
   function render(fill) {
-    var user = session && session.user, ready = !!(session && session.configured), email = !!(session && session.providers.email), google = !!(session && session.providers.google), github = !!(session && session.providers.github);
+    var user = session && session.user, ready = !!(session && session.configured), email = !!(session && session.providers.email), google = !!(session && session.providers.google), github = !!(session && session.providers.github), wechat = !!(session && session.providers.wechat);
     // Unlinking a provider needs another way back in: a verified password, or the other provider.
-    var otherThanGoogle = !!user && ((user.hasPassword && user.emailVerified && email) || (user.githubLinked && github));
-    var otherThanGithub = !!user && ((user.hasPassword && user.emailVerified && email) || (user.googleLinked && google));
+    var otherThanGoogle = !!user && ((user.hasPassword && user.emailVerified && email) || (user.githubLinked && github) || (user.wechatLinked && wechat));
+    var otherThanGithub = !!user && ((user.hasPassword && user.emailVerified && email) || (user.googleLinked && google) || (user.wechatLinked && wechat));
+    var otherThanWechat = !!user && ((user.hasPassword && user.emailVerified && email) || (user.googleLinked && google) || (user.githubLinked && github));
     root.setAttribute('aria-busy', String(busy));
     root.querySelector('[data-profile-guest]').hidden = !ready || !!user;
     root.querySelector('[data-profile-member]').hidden = !user;
@@ -146,10 +153,15 @@
     linkGithub.hidden = !user || !github || !!user.githubLinked; linkGithub.disabled = busy || !user || !github;
     unlinkGithub.hidden = !user || !user.githubLinked; unlinkGithub.disabled = busy || !user || !otherThanGithub;
     root.querySelector('[data-profile-github-status]').hidden = !github && !(user && user.githubLinked);
+    // WeChat (Official Account) links from the navbar popup's WeChat panel; it is offered only where the Worker reports it.
+    var linkWechat = root.querySelector('[data-profile-link-wechat]'), unlinkWechat = root.querySelector('[data-profile-unlink-wechat]'), wechatShown = wechat || !!(user && user.wechatLinked);
+    if (linkWechat) { linkWechat.hidden = !user || !wechat || !!user.wechatLinked || !window.CNRAuth; linkWechat.disabled = busy || !user || !wechat; }
+    if (unlinkWechat) { unlinkWechat.hidden = !user || !user.wechatLinked; unlinkWechat.disabled = busy || !user || !otherThanWechat; }
+    ['status', 'help'].forEach(function (part) { var el = root.querySelector('[data-profile-wechat-' + part + ']'); if (el) el.hidden = !wechatShown; });
     root.querySelector('[data-profile-logout]').disabled = busy || !user;
     root.querySelector('[data-profile-delete]').disabled = busy || !user;
     var cancelEmail = root.querySelector('[data-profile-cancel-email]');
-    cancelEmail.hidden = !user || !user.email || user.emailVerified || user.hasPassword || !(user.googleLinked || user.githubLinked); cancelEmail.disabled = busy || !user;
+    cancelEmail.hidden = !user || !user.email || user.emailVerified || user.hasPassword || !(user.googleLinked || user.githubLinked || user.wechatLinked); cancelEmail.disabled = busy || !user;
     root.querySelector('[data-profile-enrollment]').hidden = !user || !email || user.hasPassword;
     root.querySelector('[data-profile-member-resend]').hidden = !user || !email || (user.hasPassword && user.emailVerified);
     root.querySelector('[data-profile-password-form]').hidden = !user || !email || !user.hasPassword;
@@ -162,6 +174,9 @@
       root.querySelector('[data-profile-unlink-help]').textContent = user.googleLinked && !otherThanGoogle ? t('Keep Google linked until you have another way to sign in: a verified email and password, or a linked GitHub account.') : t('Linking Google adds a sign-in method to this same account; it does not combine different accounts or upload browser learning.');
       root.querySelector('[data-profile-github-status]').textContent = !user.githubLinked ? t('No GitHub account is linked.') : (user.githubLogin ? t('GitHub account linked: {login}.', { login: user.githubLogin }) : t('GitHub account linked.'));
       root.querySelector('[data-profile-github-help]').textContent = user.githubLinked && !otherThanGithub ? t('Keep GitHub linked until you have another way to sign in: a verified email and password, or a linked Google account.') : t('Linking GitHub adds a sign-in method to this same account; it does not combine different accounts.');
+      var wechatStatus = root.querySelector('[data-profile-wechat-status]'), wechatHelp = root.querySelector('[data-profile-wechat-help]');
+      if (wechatStatus) wechatStatus.textContent = user.wechatLinked ? t('WeChat is linked through the Official Account.') : t('No WeChat account is linked.');
+      if (wechatHelp) wechatHelp.textContent = user.wechatLinked && !otherThanWechat ? t('Keep WeChat linked until you have another way to sign in: a verified email and password, or a linked Google or GitHub account.') : t('Linking WeChat adds a sign-in method to this same account; it does not combine different accounts.');
       if (fill) { formNamed('name').elements.name.value = user.name; formNamed('enroll').elements.email.value = user.email || pendingEmail; formNamed('resend-member').elements.email.value = user.email || pendingEmail; }
     }
   }
@@ -184,7 +199,7 @@
     try { return JSON.parse(raw); } catch (ignored) { throw error(t('The account service returned an unreadable response. Please try again later.'), 'invalid_response'); }
   }
   async function request(url, method, body, authenticated) {
-    if (method !== 'GET' && ['/api/auth/login', '/api/auth/logout', '/api/auth/account', '/api/auth/password', '/api/auth/verify-email', '/api/auth/reset-password', '/api/auth/google/link', '/api/auth/github/link'].indexOf(url) >= 0) await beforeAuthAction(url);
+    if (method !== 'GET' && ['/api/auth/login', '/api/auth/logout', '/api/auth/account', '/api/auth/password', '/api/auth/verify-email', '/api/auth/reset-password', '/api/auth/google/link', '/api/auth/github/link', '/api/auth/wechat/link'].indexOf(url) >= 0) await beforeAuthAction(url);
     var controller = new AbortController(), timer = setTimeout(function () { controller.abort(); }, 15000);
     var headers = { Accept: 'application/json' };
     if (method !== 'GET') headers['Content-Type'] = 'application/json';
@@ -204,7 +219,7 @@
         if (url === '/api/auth/verify-email' && response.status < 500) throw error(t('The verification link or password was not accepted. Use the password you chose for this email, or request another verification link.'), 'invalid_token');
         if (url === '/api/auth/reset-password' && response.status < 500) throw error(t('This reset link could not be used. Request a new reset link and try again.'), 'invalid_token');
         if (url === '/api/auth/password' && response.status < 500) throw error(t('The password could not be changed. Check your current password and the new password requirements.'), 'password_failed');
-        if ((url === '/api/auth/google/link' || url === '/api/auth/github/link') && method === 'DELETE' && response.status < 500) throw error(t('This sign-in method could not be unlinked. Keep another way to sign in (a verified email and password, or another linked account) before removing it.'), 'unlink_failed');
+        if ((url === '/api/auth/google/link' || url === '/api/auth/github/link' || url === '/api/auth/wechat/link') && method === 'DELETE' && response.status < 500) throw error(t('This sign-in method could not be unlinked. Keep another way to sign in (a verified email and password, or another linked account) before removing it.'), 'unlink_failed');
         if (response.status === 403) throw error(t('Refresh your account connection before trying this action again.'), 'refresh_session');
         throw error(t('That account action is unavailable right now. Please try again later; your browser learning is unchanged.'), 'unavailable');
       }
@@ -282,6 +297,13 @@
       if (busy || !session || !session.user || !confirm(t('Unlink {provider} and sign this account out on all devices? You will sign in again with your remaining sign-in method.', { provider: provider.label }))) return;
       run(async function () { await sameAccount(); await request('/api/auth/' + provider.key + '/link', 'DELETE', {}, true); await refresh(true); say(t('{provider} was unlinked. Sign in again with your remaining sign-in method.', { provider: provider.label })); });
     });
+  });
+  var linkWechatButton = root.querySelector('[data-profile-link-wechat]'), unlinkWechatButton = root.querySelector('[data-profile-unlink-wechat]');
+  // Linking reuses the navbar popup's WeChat panel; its result arrives through cnr:auth-changed below.
+  if (linkWechatButton) linkWechatButton.addEventListener('click', function () { if (!busy && session && session.user && window.CNRAuth) window.CNRAuth.open('wechat'); });
+  if (unlinkWechatButton) unlinkWechatButton.addEventListener('click', function () {
+    if (busy || !session || !session.user || !confirm(t('Unlink WeChat and sign this account out on all devices? You will sign in again with your remaining sign-in method.'))) return;
+    run(async function () { await sameAccount(); await request('/api/auth/wechat/link', 'DELETE', {}, true); await refresh(true); say(t('WeChat was unlinked. Sign in again with your remaining sign-in method.')); });
   });
   root.querySelector('[data-profile-cancel-email]').addEventListener('click', function () {
     run(async function () { await sameAccount(); await request('/api/auth/email', 'DELETE', {}, true); pendingEmail = ''; await refresh(true); say(t('The pending email request was cancelled. Your linked account remains linked, and browser learning is unchanged.')); });
