@@ -14,6 +14,7 @@
     'Create an account': '注册账户',
     'Email or password was not accepted. If you just registered, verify your email first.': '邮箱或密码不正确。如果刚刚注册，请先验证邮箱。',
     'Enter a valid email address.': '请输入有效的邮箱地址。',
+    'Get a new QR code': '刷新二维码',
     'Getting a sign-in code…': '正在获取验证码…',
     'Google sign-in could not be verified. Please try again.': '无法验证 Google 登录。请重试。',
     'Google sign-in did not load.': 'Google 登录未能加载。',
@@ -28,6 +29,7 @@
     'Opening Google sign-in…': '正在打开 Google 登录…',
     'Please wait a little before trying again.': '请稍候再试。',
     'Please wait for the current account request.': '请等待当前账户请求完成。',
+    'QR code expires in {time}': '二维码将在 {time} 后过期',
     'Reconnect': '重新连接',
     'Reconnect to confirm the current account before signing out.': '请先重新连接以确认当前账户，再退出登录。',
     'Reconnecting…': '正在重新连接…',
@@ -55,11 +57,13 @@
     'The signed-in account changed. Review the current account before trying again.': '已登录的账户发生了变化。请先确认当前账户再重试。',
     'The WeChat code could not be verified. Please try again.': '无法验证微信验证码。请重试。',
     'This code has expired.': '验证码已过期。',
+    'This QR code has expired.': '二维码已过期。',
     'This WeChat account is already linked to another account.': '这个微信已关联到另一个账户。',
     'Use a display name of 1–100 characters.': '显示名称需为 1–100 个字符。',
     'Use a password with 15–128 characters. Spaces are kept.': '密码需为 15–128 个字符，空格会被保留。',
     'Verify your email': '验证邮箱',
     'Waiting for your message…': '等待你在微信中发送验证码…',
+    'Waiting for your scan…': '等待你扫码…',
     'WeChat account linked.': '已关联微信。',
     'Your latest progress could not be synced. You are still signed in; retry before signing out.': '最新进度未能同步。你仍处于登录状态，请重试同步后再退出登录。',
     'Your learning could not be kept safely before this account change. Try connecting again, then retry.': '切换账户前未能安全保留你的学习记录。请重新连接后再试。',
@@ -358,16 +362,28 @@
     mutation=operation;
     try{return await operation;}finally{if(mutation===operation)mutation=null;}
   }
-  // WeChat Official Account sign-in: the reader follows the account and sends a short code in the chat; the page
-  // polls until the Worker has seen it. Signed-in readers use the same panel to link WeChat to their account.
-  let wechatEpoch=0,wechatPoll=null,wechatTick=null,wechatController=null,wechatGate=false,wechatCode='';
+  // WeChat Official Account sign-in. Normally (mode 'scan') the reader scans a QR code made for this login and is
+  // signed in on following (or at once if already following); as a fallback (mode 'code') the reader scans the
+  // account's static QR code, follows and sends a short code in the chat. Either way the page polls until the Worker
+  // has seen it. Signed-in readers use the same panel to link WeChat to their account.
+  let wechatEpoch=0,wechatPoll=null,wechatTick=null,wechatController=null,wechatGate=false,wechatCode='',wechatScan=false;
   const wechatEl=name=>wechatPanel?.querySelector('[data-auth-wechat-'+name+']');
+  const wechatQr=wechatEl('qr'),wechatQrStatic=wechatQr?.getAttribute('src')??null,wechatRenewText=wechatEl('renew')?.textContent??'';
+  // mode: 'scan' (per-login QR in qr), 'code' (static QR + code), or null while a code is being fetched (no steps yet).
+  function wechatMode(mode,qr){
+    wechatScan=mode==='scan';
+    if(wechatQr){if(wechatScan)wechatQr.src=qr;else if(mode==='code'||mode==='static'){if(wechatQrStatic===null)wechatQr.removeAttribute('src');else wechatQr.setAttribute('src',wechatQrStatic);}}
+    wechatPanel?.querySelectorAll('[data-auth-wechat-steps]').forEach(list=>{list.hidden=list.dataset.authWechatSteps!==mode;});
+    const code=wechatEl('code');if(code)code.hidden=mode!=='code';
+    const renew=wechatEl('renew');if(renew)renew.textContent=wechatScan?t('Get a new QR code'):wechatRenewText;
+  }
+  const wechatExpired=()=>wechatScan?t('This QR code has expired.'):t('This code has expired.');
   function wechatStop(){clearTimeout(wechatPoll);clearInterval(wechatTick);wechatPoll=wechatTick=null;wechatController?.abort();wechatController=null;}
   function wechatStatus(text){const el=wechatEl('status');if(el)el.textContent=text;}
   function wechatHalt(text,error=true){wechatStop();wechatStatus('');const expires=wechatEl('expires');if(expires)expires.textContent='';say(text,error);const renew=wechatEl('renew');if(renew){renew.hidden=false;renew.disabled=false;}}
   // Leaving the panel before sign-in finished: tell learning the login did not happen, as a failed password login does.
   function wechatRelease(){if(!wechatGate)return;wechatGate=false;fetchSession({force:true,reason:'login-failed'}).catch(()=>{});}
-  function wechatClose(){wechatEpoch++;wechatStop();wechatOpen=false;wechatCode='';wechatRelease();}
+  function wechatClose(){wechatEpoch++;wechatStop();wechatOpen=false;wechatCode='';wechatMode('static');wechatRelease();}
   function wechatShow(){
     wechatOpen=true;wechatLink=Boolean(current?.user);clearPasswords();
     const code=wechatEl('code'),expires=wechatEl('expires'),renew=wechatEl('renew');
@@ -381,6 +397,7 @@
   async function wechatStart(){
     const epoch=++wechatEpoch;wechatStop();wechatCode='';
     const code=wechatEl('code'),renew=wechatEl('renew');if(code)code.textContent='';if(renew){renew.hidden=true;}
+    if(!wechatScan)wechatMode(null); // a renewed scan keeps its steps until the new QR code arrives
     say(t('Getting a sign-in code…'));
     try{
       // Signing in changes who owns this browser's learning, so learning gets its chance first (as the Google button does).
@@ -388,13 +405,17 @@
       if(epoch!==wechatEpoch)return;
       const result=await request('/api/auth/wechat/start','POST',{},current?.user?current:undefined);
       if(epoch!==wechatEpoch)return;
-      if(!object(result)||typeof result.code!=='string'||!/^\d{6}$/.test(result.code)||typeof result.expiresAt!=='number')throw fault('invalid_response',t('The WeChat code could not be verified. Please try again.'));
-      wechatCode=result.code;if(code)code.textContent=result.code;
-      say(t('Scan the QR code with WeChat to follow the account, then send this code in the chat:'));wechatStatus(t('Waiting for your message…'));
+      // An older Worker sends no mode: that is the code flow.
+      const scan=object(result)&&result.mode==='scan';
+      if(!object(result)||typeof result.code!=='string'||!/^\d{6}$/.test(result.code)||typeof result.expiresAt!=='number'||!(result.mode===undefined||result.mode==='scan'||result.mode==='code')||
+        scan&&!(typeof result.qr==='string'&&result.qr.length<=2000&&/^https:\/\/mp\.weixin\.qq\.com\/cgi-bin\/showqrcode\?ticket=[^\s"'<>]+$/.test(result.qr)))throw fault('invalid_response',t('The WeChat code could not be verified. Please try again.'));
+      wechatCode=result.code;wechatMode(scan?'scan':'code',result.qr);
+      if(scan){say('');wechatStatus(t('Waiting for your scan…'));}
+      else{if(code)code.textContent=result.code;say(t('Scan the QR code with WeChat to follow the account, then send this code in the chat:'));wechatStatus(t('Waiting for your message…'));}
       // The server's clock decides; a skewed local clock only falls back to five minutes, and the server still says 'expired'.
       let left=result.expiresAt-Date.now();if(!(left>0&&left<=3600000))left=300000;
       const until=Date.now()+left,expires=wechatEl('expires');
-      const tick=()=>{const s=Math.max(0,Math.ceil((until-Date.now())/1000));if(expires)expires.textContent=t('Code expires in {time}',{time:Math.floor(s/60)+':'+String(s%60).padStart(2,'0')});if(s<=0&&epoch===wechatEpoch)wechatHalt(t('This code has expired.'));};
+      const tick=()=>{const s=Math.max(0,Math.ceil((until-Date.now())/1000));if(expires)expires.textContent=t(scan?'QR code expires in {time}':'Code expires in {time}',{time:Math.floor(s/60)+':'+String(s%60).padStart(2,'0')});if(s<=0&&epoch===wechatEpoch)wechatHalt(wechatExpired());};
       tick();wechatTick=setInterval(tick,1000);
       wechatSchedule(epoch);
     }catch(error){
@@ -414,7 +435,7 @@
     if(epoch!==wechatEpoch)return;
     const status=object(value)?value.status:'';
     if(status==='pending'){wechatSchedule(epoch);return;}
-    if(status==='expired'){wechatHalt(t('This code has expired.'));return;}
+    if(status==='expired'){wechatHalt(wechatExpired());return;}
     if(status==='conflict'){wechatHalt(t('This WeChat account is already linked to another account.'));return;}
     if(status!=='done'&&status!=='linked'){wechatHalt(t('The WeChat code could not be verified. Please try again.'));return;}
     wechatStop();wechatStatus('');

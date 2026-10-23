@@ -18,6 +18,7 @@ const { chromium } = await import(playwrightModule);
 
 const LESSON = '/docs/language/python/python-functional-programming/python-functional-programming-overview/';
 const ZH_LESSON = '/docs/framework/wechatminiprogram/applet-login-and-authorization/实名认证/';
+const QR_TICKET = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=gQTicket'; // aborted below like every third-party URL; only the src matters
 const session = { configured: true, providers: { google: true, github: true, email: false }, user: null };
 
 let server, browser, origin;
@@ -48,7 +49,7 @@ async function open(t, url, reply = session) {
   await context.route('**/api/**', route => {
     const url = route.request().url();
     if (url.includes('/api/auth/session')) return route.fallback();
-    if (url.includes('/api/auth/wechat/start')) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ code: '483921', expiresAt: Date.now() + 300000 }) });
+    if (url.includes('/api/auth/wechat/start')) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ code: '483921', expiresAt: Date.now() + 300000, mode: 'scan', qr: QR_TICKET }) });
     if (url.includes('/api/auth/wechat/status')) return route.fulfill({ contentType: 'application/json', body: '{"status":"pending"}' });
     return route.fulfill({ status: 401, contentType: 'application/json', body: '{"error":"authentication_required"}' });
   });
@@ -129,16 +130,21 @@ test('/profile/ renders for a guest', async t => {
   assert.deepEqual(errors, []);
 });
 
-test('the popup opens straight on 微信扫码登录: QR code and code shown, other methods kept below', async t => {
+test('the popup opens straight on 微信扫码登录: the per-login QR code, no code to send, other methods kept below', async t => {
   const { page, errors } = await open(t, LESSON, { ...session, providers: { ...session.providers, wechat: true } });
   await page.locator('.navbar [data-auth-open]').click();
   await page.locator('[data-auth-wechat-panel]').waitFor({ state: 'visible' }); // no click needed: WeChat is the default view
   const qr = page.locator('[data-auth-wechat-qr]');
   assert.equal(await qr.isVisible(), true);
-  assert.match(await qr.getAttribute('src'), /^\/img\/wechat-qrcode\.jpg$/);
-  await page.waitForFunction(() => document.querySelector('[data-auth-wechat-code]').textContent === '483921');
+  await page.waitForFunction(ticket => document.querySelector('[data-auth-wechat-qr]').getAttribute('src') === ticket, QR_TICKET);
+  assert.equal(await page.locator('[data-auth-wechat-code]').isVisible(), false, 'no code to send in scan mode');
+  assert.equal(await page.locator('[data-auth-wechat-code]').textContent(), '');
+  assert.equal(await page.locator('[data-auth-wechat-steps="scan"]').isVisible(), true);
+  assert.equal(await page.locator('[data-auth-wechat-steps="code"]').isVisible(), false);
+  assert.match(await page.locator('[data-auth-wechat-steps="scan"]').textContent(), /关注公众号后自动登录/);
   assert.equal(await page.locator('#cnr-auth-title').textContent(), '登录');
-  assert.match(await page.locator('[data-auth-wechat-expires]').textContent(), /验证码将在 \d+:\d\d 后过期/);
+  assert.match(await page.locator('[data-auth-wechat-expires]').textContent(), /^二维码将在 \d+:\d\d 后过期$/);
+  assert.equal(await page.locator('[data-auth-wechat-status]').textContent(), '等待你扫码…');
   assert.equal(await page.locator('[data-auth-wechat]').isVisible(), false, 'no separate WeChat button when the panel is the form');
   assert.equal(await page.locator('[data-auth-wechat-back]').isVisible(), false, 'nothing to go back to');
   assert.equal(await page.locator('[data-auth-wechat-others]').isVisible(), true);

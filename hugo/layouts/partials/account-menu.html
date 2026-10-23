@@ -20,12 +20,16 @@
   <button type="button" class="cnr-auth-dialog__retry" data-auth-retry hidden>重新尝试连接</button>
   <div class="cnr-auth-dialog__wechat" data-auth-wechat-panel hidden>
     <img class="cnr-auth-dialog__wechat-qr" data-auth-wechat-qr {{ with site.Data.site.wechat }}{{ with .qrImage }}src="{{ printf "/%s" . }}" {{ end }}{{ end }}alt="微信公众号二维码" width="180" height="180" loading="lazy" draggable="false">
-    <ol class="cnr-auth-dialog__wechat-steps">
+    <ol class="cnr-auth-dialog__wechat-steps" data-auth-wechat-steps="scan" hidden>
+      <li>用微信扫描上方二维码。</li>
+      <li>关注公众号后自动登录。</li>
+    </ol>
+    <ol class="cnr-auth-dialog__wechat-steps" data-auth-wechat-steps="code" hidden>
       <li>打开微信，扫描上方二维码。</li>
       <li>关注公众号。</li>
       <li>在公众号对话框中发送下面的验证码。</li>
     </ol>
-    <p class="cnr-auth-dialog__wechat-code" data-auth-wechat-code aria-label="验证码"></p>
+    <p class="cnr-auth-dialog__wechat-code" data-auth-wechat-code aria-label="验证码" hidden></p>
     <p class="cnr-auth-dialog__wechat-expires" data-auth-wechat-expires aria-live="off"></p>
     <p class="cnr-auth-dialog__wechat-status" data-auth-wechat-status role="status"></p>
     <div class="cnr-auth-dialog__wechat-actions">
