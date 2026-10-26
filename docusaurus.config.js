@@ -53,7 +53,7 @@ const config = {
         // 改公众号名字 / 换二维码 / 调整弹窗行为，只需改这里
         wechat: {
             enabled: true,
-            name: '科技侧影',                    // 公众号名称（改名只需改这一行）
+            name: '代码酷笔记',                  // 公众号名称（改名只需改这一行）
             description: '关注公众号，第一时间获取最新教程、面试题与更新通知。',
             qrImage: 'img/wechat-qrcode.jpg',    // 二维码图片，放在 static/img 下
             floatLabel: '关注公众号',              // 悬浮按钮文字
