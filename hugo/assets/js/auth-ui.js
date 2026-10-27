@@ -99,11 +99,19 @@
   // remembered from the last real answer so the popup can render before it asks.
   const HINT='cnr_signed_in', PROVIDERS_KEY='cnr-auth-providers';
   const hinted=()=>new RegExp('(?:^|;\\s*)'+HINT+'=1(?:;|$)').test(document.cookie);
-  function setHint(on){try{document.cookie=HINT+'='+(on?'1':'')+'; Path=/; Max-Age='+(on?2592000:0)+'; SameSite=Lax'+(location.protocol==='https:'?'; Secure':'');}catch(_){}}
+  // Domain-wide (compilenrun.com) so Moodle can sign readers in automatically; clearing also drops the older host-only cookie.
+  const HINT_DOMAIN=(h=>h.length>=2&&!/^\d+$/.test(h[h.length-1])?'; Domain='+h.slice(-2).join('.'):'')(location.hostname.split('.'));
+  function setHint(on){try{const base=HINT+'='+(on?'1':'')+'; Path=/; Max-Age='+(on?2592000:0)+'; SameSite=Lax'+(location.protocol==='https:'?'; Secure':'');if(!on)document.cookie=base;document.cookie=base+HINT_DOMAIN;}catch(_){}}
+  // Sister-site sign-on (Moodle): /api/auth/oauth/authorize sends signed-out readers here with ?auth=login&next=<authorize url>.
+  // The analytics dashboard's /api/analytics/connect hand-off uses the same door.
+  // The target survives a full-page Google/GitHub round trip in sessionStorage and is used once the session exists.
+  const SSO_KEY='cnr-sso-next';
+  const ssoNext=(()=>{try{const p=new URLSearchParams(location.search);const n=p.get('auth')==='login'?p.get('next')||'':'';if(/^\/api\/(auth\/oauth\/authorize|analytics\/connect)\?[\w%&=.+-]+$/.test(n)){sessionStorage.setItem(SSO_KEY,n);return n;}return sessionStorage.getItem(SSO_KEY)||'';}catch(_){return '';}})();
+  function ssoContinue(user){if(!ssoNext||!user)return false;try{sessionStorage.removeItem(SSO_KEY);}catch(_){}location.replace(ssoNext);return true;}
   function rememberProviders(p){try{localStorage.setItem(PROVIDERS_KEY,JSON.stringify({google:p.google===true,github:p.github===true,email:p.email===true,wechat:p.wechat===true}));}catch(_){}}
   function guestSession(){let p=null;try{p=JSON.parse(localStorage.getItem(PROVIDERS_KEY));}catch(_){p=null;}
     return {configured:true,providers:p&&typeof p==='object'?{google:p.google===true,github:p.github===true,email:p.email===true,wechat:p.wechat===true}:{google:true,github:true,email:true,wechat:false},user:null};}
-  const mustCheck=()=>hinted()||/^\/profile\//.test(location.pathname)||/[?&#]auth=/.test(location.search+location.hash);
+  const mustCheck=()=>hinted()||/^\/profile\//.test(location.pathname)||/[?&#]auth=/.test(location.search+location.hash)||(()=>{try{return !!sessionStorage.getItem('cnr-sso-next');}catch(_){return false;}})();
   // Sign-in invitations (the popup and Google One Tap) share one snooze record.
   const INVITE_KEY='cnr-auth-invite',DAY=86400000;
   const inviteStore={get(){try{return JSON.parse(localStorage.getItem(INVITE_KEY))||{};}catch(_){return{};}},set(v){try{localStorage.setItem(INVITE_KEY,JSON.stringify(v));}catch(_){}}};
@@ -122,18 +130,28 @@
     if (!value.configured || !plain(user.id,200) || !plain(user.name,100,true) ||
         !(user.email === undefined || user.email === null || plain(user.email,254)) ||
         typeof user.emailVerified !== 'boolean' || typeof user.hasPassword !== 'boolean' || typeof user.googleLinked !== 'boolean' || !(user.googleEmail === undefined || user.googleEmail === null || plain(user.googleEmail,254)) ||
-        !(user.githubLinked === undefined || typeof user.githubLinked === 'boolean') || !(user.githubLogin === undefined || user.githubLogin === null || plain(user.githubLogin,39)) || !(user.wechatLinked === undefined || typeof user.wechatLinked === 'boolean') || !plain(value.csrfToken,500)) {
+        !(user.githubLinked === undefined || typeof user.githubLinked === 'boolean') || !(user.githubLogin === undefined || user.githubLogin === null || plain(user.githubLogin,39)) || !(user.wechatLinked === undefined || typeof user.wechatLinked === 'boolean') ||
+        !(user.avatar === undefined || user.avatar === null || (plain(user.avatar,512) && /^https:\/\/[^\s"'<>]+$/.test(user.avatar))) || !plain(value.csrfToken,500)) {
       throw fault('invalid_response',t('Sign-in details could not be verified. Please try again.'));
     }
     return { configured: value.configured, providers, user: { id: user.id, name: user.name, email: user.email || null,
       emailVerified: user.emailVerified, hasPassword: user.hasPassword, googleLinked: user.googleLinked, googleEmail: user.googleLinked && user.googleEmail || null,
-      githubLinked: user.githubLinked === true, githubLogin: user.githubLinked === true && user.githubLogin || null, wechatLinked: user.wechatLinked === true }, csrfToken: value.csrfToken };
+      githubLinked: user.githubLinked === true, githubLogin: user.githubLinked === true && user.githubLogin || null, wechatLinked: user.wechatLinked === true, avatar: user.avatar || null }, csrfToken: value.csrfToken };
   }
   function clearPasswords() { dialog?.querySelectorAll('input[type="password"]').forEach(input=>{input.value='';}); }
   function say(text, error = false) { if(message){message.textContent=text;message.dataset.error=String(error);} }
   function initials(name) {
     const parts=name.trim().split(/\s+/).filter(Boolean);
     return parts.length ? (Array.from(parts[0])[0] + (parts.length>1?Array.from(parts[parts.length-1])[0]:'')).toLocaleUpperCase() : '?';
+  }
+  // The profile picture (WeChat avatar) covers the initials while it loads fine; a failed image falls back to them.
+  let pictureFailed='';
+  function renderPicture(url) {
+    const picture=widget?.querySelector('[data-auth-picture]');
+    if(!picture)return;
+    if(!url||url===pictureFailed){picture.hidden=true;if(picture.getAttribute('src'))picture.removeAttribute('src');return;}
+    if(picture.getAttribute('src')!==url){picture.onerror=()=>{pictureFailed=url;picture.hidden=true;};picture.src=url;}
+    picture.hidden=false;
   }
   function closeMenu(focus = false) {
     if(!menu)return;menu.hidden=true;avatar.setAttribute('aria-expanded','false');
@@ -156,7 +174,7 @@
     if(widget){
       widget.setAttribute('aria-busy',String(busy||transitioning));
       openButton.hidden=Boolean(user);openButton.textContent=published&&current===null?t('Reconnect'):t('Sign in');avatar.hidden=!user;avatar.disabled=busy||transitioning;
-      if(user){widget.querySelector('[data-auth-initials]').textContent=initials(user.name);widget.querySelector('[data-auth-name]').textContent=user.name||t('Learner');avatar.setAttribute('aria-label',t('Open account menu for {name}',{name:user.name||t('Learner')}));}
+      if(user){widget.querySelector('[data-auth-initials]').textContent=initials(user.name);widget.querySelector('[data-auth-name]').textContent=user.name||t('Learner');avatar.setAttribute('aria-label',t('Open account menu for {name}',{name:user.name||t('Learner')}));renderPicture(user.avatar);}
       else closeMenu();
       widget.querySelector('[data-auth-signout]').disabled=!user||busy||transitioning;
       widget.querySelector('[data-auth-refresh]').hidden=!transitionFailed;widget.querySelector('[data-auth-refresh]').disabled=busy||transitioning;
@@ -615,4 +633,8 @@
   // A recovered network immediately retries an unknown/failed session check.
   // Guests (no hint cookie) start from a synthetic guest session and only ask the server when the popup opens.
   initial=Promise.resolve().then(()=>mustCheck()?fetchSession({force:true,reason:'initial'}):accept(guestSession(),'initial')).catch(()=>clone(current));
+  if(ssoNext){
+    window.addEventListener('cnr:auth-changed',event=>{if(event.detail?.session?.user)ssoContinue(event.detail.session.user);});
+    initial.then(s=>{if(!ssoContinue(s?.user)&&/[?&]auth=login/.test(location.search))openDialog('login');}).catch(()=>{});
+  }
 })();

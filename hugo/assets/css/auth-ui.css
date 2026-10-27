@@ -3,8 +3,10 @@
 .cnr-auth [hidden],.cnr-auth-dialog [hidden] { display: none !important; }
 .cnr-auth__signin { white-space: nowrap; min-height: 36px; padding: .35rem .8rem; border: 1px solid var(--ifm-color-emphasis-300,#c4ccd5); border-radius: .45rem; background: transparent; color: var(--ifm-navbar-link-color,#253845); font: 600 .86rem/1.4 var(--ifm-font-family-base,system-ui,sans-serif); cursor: pointer; }
 .cnr-auth__signin:hover { border-color: var(--ifm-color-primary,#19705a); }
-.cnr-auth__avatar { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--cnr-action-hover,#124d35); border-radius: 50%; background: var(--cnr-action,#186344); color: #fff; font: 700 .8rem/1 var(--ifm-font-family-base,system-ui,sans-serif); cursor: pointer; }
+.cnr-auth__avatar { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--cnr-action-hover,#124d35); border-radius: 50%; background: var(--cnr-action,#186344); color: #fff; font: 700 .8rem/1 var(--ifm-font-family-base,system-ui,sans-serif); cursor: pointer; }
 .cnr-auth__avatar[aria-expanded=true] { box-shadow: 0 0 0 3px var(--ifm-color-emphasis-300,#c4ccd5); }
+.cnr-auth__picture { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #fff; }
+.cnr-auth__picture[hidden] { display: none; }
 .cnr-auth__menu { position: fixed; z-index: 300; top: var(--cnr-auth-menu-top,4rem); left: var(--cnr-auth-menu-left,auto); width: 250px; max-width: calc(100vw - 24px); padding: .4rem; border: 1px solid var(--ifm-color-emphasis-300,#c4ccd5); border-radius: .65rem; background: var(--ifm-navbar-background-color,#fff); color: var(--ifm-font-color-base,#253845); box-shadow: 0 10px 35px #0003; font: .88rem/1.5 var(--ifm-font-family-base,system-ui,sans-serif); }
 .cnr-auth__identity { padding: .5rem .65rem .7rem; margin-bottom: .35rem; border-bottom: 1px solid var(--ifm-color-emphasis-200,#e0e6eb); }
 .cnr-auth__identity span { display: block; color: var(--ifm-color-emphasis-700,#536473); font-size: .78rem; }
