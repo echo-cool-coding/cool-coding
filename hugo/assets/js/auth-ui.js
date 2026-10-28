@@ -326,8 +326,11 @@
     refresh({force:false}).catch(()=>{});
     if(viaWechat||wechatAuto())wechatBegin();
   }
-  // In WeChat-default mode the login form starts on the QR code as soon as WeChat is known to be available.
-  const wechatAuto=()=>wechatDefault&&dialog?.open&&mode==='login'&&!wechatOpen&&!current?.user&&capabilities.wechat&&!busy&&!transitioning&&!transitionFailed;
+  // In WeChat-default mode the login form starts on the QR code as soon as WeChat is known to be available, but only
+  // when the reader opened the dialog. The sign-in invite below opens it unasked for thousands of guests a day, and
+  // every started login costs a pooled single-use QR ticket and ~17 D1 row writes; those readers see the WeChat button.
+  let invitedOpen=false;
+  const wechatAuto=()=>wechatDefault&&!invitedOpen&&dialog?.open&&mode==='login'&&!wechatOpen&&!current?.user&&capabilities.wechat&&!busy&&!transitioning&&!transitionFailed;
   async function perform(form) {
     if(busy||transitioning||transitionFailed||!capabilities.email||!form.reportValidity())return;
     const kind=form.dataset.authForm,fields=Object.fromEntries(new FormData(form));
@@ -494,7 +497,7 @@
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!menu.hidden&&!dialog.open){event.preventDefault();closeMenu(true);}});
     dialog.querySelector('[data-auth-close]').addEventListener('click',()=>closeDialog());
     dialog.addEventListener('close',()=>{
-      clearPasswords();if(wechatOpen){wechatClose();render();}
+      invitedOpen=false;clearPasswords();if(wechatOpen){wechatClose();render();}
       const target=focusAvatarOnClose&&!avatar.hidden?avatar:returnFocus&&returnFocus.isConnected&&returnFocus.getClientRects().length?returnFocus:!avatar.hidden?avatar:openButton;
       focusAvatarOnClose=false;requestAnimationFrame(()=>target?.focus());
     });
@@ -535,7 +538,7 @@
     const eligible=()=>!session.get('shown')&&!inviteSnoozed()&&!oneTapDisplayed&&known&&!current?.user&&!transitionFailed&&!busy&&!dialog.open&&document.visibilityState==='visible'&&(capabilities.google||capabilities.github||capabilities.email||capabilities.wechat);
     function show(text){
       if(!eligible())return;
-      session.set('shown','1');invited=true;
+      session.set('shown','1');invited=true;invitedOpen=true;
       openDialog('login',document.activeElement);say(text);
     }
     function later(ms,text){clearTimeout(timer);timer=setTimeout(()=>{if(document.visibilityState!=='visible'){document.addEventListener('visibilitychange',()=>later(1500,text),{once:true});return;}
