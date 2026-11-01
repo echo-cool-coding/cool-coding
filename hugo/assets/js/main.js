@@ -526,7 +526,17 @@
           callback: tsGive,
           'expired-callback': function () { ts.token = null; window.turnstile.reset(ts.id); },
           // Turnstile retries on its own after an error; tell anyone waiting now instead of after the timeout.
-          'error-callback': function () { ts.token = null; tsFail('人机验证失败。请完成下方的验证，或刷新页面后再提问。'); }
+          // An interaction-only widget stays hidden when it errors, so don't point the reader at a widget "below".
+          'error-callback': function (code) {
+            ts.token = null;
+            code = String(code || '');
+            tsFail(/^(1101|1102|1104|4000)/.test(code)
+              ? '本站的人机验证配置有误（错误码 ' + code + '），AI 助手暂时无法使用，请稍后再试。'
+              : /^1105/.test(code) ? '你的浏览器不支持人机验证（错误码 ' + code + '），请更新浏览器后再试。'
+              : /^2001/.test(code) ? '人机验证失败（错误码 ' + code + '）：请检查电脑的系统时间是否正确，然后刷新页面。'
+              : '人机验证失败' + (code ? '（错误码 ' + code + '）' : '') + '。请刷新页面后重试；若仍失败，请为本站关闭广告拦截或隐私插件。');
+            return true;
+          }
         });
       };
       var sc = document.createElement('script');
@@ -539,12 +549,17 @@
       if (!askSitekey) return Promise.resolve('');
       tsLoad();
       if (ts.token) { var t = ts.token; ts.token = null; return Promise.resolve(t); }
-      if (ts.error) return Promise.reject(new Error(ts.error));
+      // After an error, ask Turnstile for a fresh token rather than repeating the old error forever.
+      if (ts.error) {
+        if (ts.id === null) return Promise.reject(new Error(ts.error));
+        ts.error = null;
+        tsNext();
+      }
       return new Promise(function (ok, fail) {
         var w = { ok: function (t) { clearTimeout(timer); ts.token = null; ok(t); }, fail: function (e) { clearTimeout(timer); fail(e); } };
         var timer = setTimeout(function () {
           ts.waiting = ts.waiting.filter(function (x) { return x !== w; });
-          fail(new Error('人机验证尚未完成。请完成下方的验证后再提问。'));
+          fail(new Error(ts.error || '人机验证超时。请刷新页面后再提问。'));
         }, 45000);
         ts.waiting.push(w);
       });
