@@ -326,9 +326,9 @@
     refresh({force:false}).catch(()=>{});
     if(viaWechat||wechatAuto())wechatBegin();
   }
-  // In WeChat-default mode the login form starts on the QR code as soon as WeChat is known to be available, but only
-  // when the reader opened the dialog. The sign-in invite below opens it unasked for thousands of guests a day, and
-  // every started login costs a pooled single-use QR ticket and ~17 D1 row writes; those readers see the WeChat button.
+  // In WeChat-default mode the login form starts on the QR code as soon as WeChat is known to be available. The sign-in
+  // invite below opens it unasked for thousands of guests a day, and every started login costs a pooled single-use QR
+  // ticket and ~17 D1 row writes, so an invited dialog waits for the reader to point at, touch or type in it first.
   let invitedOpen=false;
   const wechatAuto=()=>wechatDefault&&!invitedOpen&&dialog?.open&&mode==='login'&&!wechatOpen&&!current?.user&&capabilities.wechat&&!busy&&!transitioning&&!transitionFailed;
   async function perform(form) {
@@ -501,6 +501,12 @@
       const target=focusAvatarOnClose&&!avatar.hidden?avatar:returnFocus&&returnFocus.isConnected&&returnFocus.getClientRects().length?returnFocus:!avatar.hidden?avatar:openButton;
       focusAvatarOnClose=false;requestAnimationFrame(()=>target?.focus());
     });
+    const engaged=event=>{
+      if(!invitedOpen||event.key==='Escape')return;
+      if(event.clientX!==undefined){const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)return;}
+      invitedOpen=false;if(wechatAuto())wechatBegin();
+    };
+    ['pointermove','pointerdown','keydown'].forEach(type=>dialog.addEventListener(type,engaged));
     dialog.addEventListener('click',event=>{if(event.target===dialog){const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)closeDialog();}});
     dialog.querySelectorAll('[data-auth-mode]').forEach(button=>button.addEventListener('click',()=>modeChanged(button.dataset.authMode)));
     dialog.querySelector('[data-auth-github]').addEventListener('click',event=>{
