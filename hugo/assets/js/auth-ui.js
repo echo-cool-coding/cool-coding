@@ -87,6 +87,9 @@
   // data-auth-default="wechat" on the dialog (代码酷): the login form opens straight on the WeChat QR code and
   // the other sign-in methods stay available below it.
   const wechatDefault = dialog?.dataset.authDefault === 'wechat';
+  // data-auth-invite="wechat" as well (代码酷, to win followers for the Official Account): the sign-in invite comes a few
+  // seconds into any page (data-auth-invite-delay, ms) and starts on the QR code like a dialog the reader opened.
+  const inviteWechat = wechatDefault && dialog?.dataset.authInvite === 'wechat';
   const wechatSolo = () => wechatOpen && !(wechatDefault && !wechatLink); // the panel replaces the other methods
   const titles = { login: t('Sign in'), register: t('Create an account'), forgot: t('Reset your password'), resend: t('Verify your email') };
   let current = null, known = false, published = false, transitionFailed = false, actionPending = false, capabilities = { google: false, github: false, email: false, wechat: false };
@@ -328,7 +331,8 @@
   }
   // In WeChat-default mode the login form starts on the QR code as soon as WeChat is known to be available. The sign-in
   // invite below opens it unasked for thousands of guests a day, and every started login costs a pooled single-use QR
-  // ticket and ~17 D1 row writes, so an invited dialog waits for the reader to point at, touch or type in it first.
+  // ticket and ~17 D1 row writes, so an invited dialog waits for the reader to point at, touch or type in it first
+  // (unless data-auth-invite="wechat" asks for the QR code up front).
   let invitedOpen=false;
   const wechatAuto=()=>wechatDefault&&!invitedOpen&&dialog?.open&&mode==='login'&&!wechatOpen&&!current?.user&&capabilities.wechat&&!busy&&!transitioning&&!transitionFailed;
   async function perform(form) {
@@ -532,25 +536,26 @@
     render();
   }
   // Invite guests to sign in, without nagging: once per visit at most, only after they have read a couple of
-  // pages (or right after they save something as a guest that an account would keep across devices), never on
+  // pages (a few seconds into the first one with data-auth-invite="wechat") (or right after they save something as a guest that an account would keep across devices), never on
   // the home, profile or auth pages, and snoozed for two weeks after a dismissal (three months after the third).
   (function invite(){
     if(!dialog||!widget||quietPage())return;
     const KEY=INVITE_KEY;
     const session={get(k){try{return sessionStorage.getItem(KEY+':'+k);}catch(_){return null;}},set(k,v){try{sessionStorage.setItem(KEY+':'+k,v);}catch(_){}}};
     const pages=Number(session.get('pages')||0)+1;session.set('pages',String(pages));
-    const delay=typeof window.CNR_INVITE_DELAY_MS==='number'?window.CNR_INVITE_DELAY_MS:25000;
+    const delay=typeof window.CNR_INVITE_DELAY_MS==='number'?window.CNR_INVITE_DELAY_MS:inviteWechat?Number(dialog.dataset.authInviteDelay)||8000:25000;
     let invited=false,timer=null;
     const eligible=()=>!session.get('shown')&&!inviteSnoozed()&&!oneTapDisplayed&&known&&!current?.user&&!transitionFailed&&!busy&&!dialog.open&&document.visibilityState==='visible'&&(capabilities.google||capabilities.github||capabilities.email||capabilities.wechat);
     function show(text){
       if(!eligible())return;
-      session.set('shown','1');invited=true;invitedOpen=true;
+      session.set('shown','1');invited=true;invitedOpen=!inviteWechat;
       openDialog('login',document.activeElement);say(text);
     }
     function later(ms,text){clearTimeout(timer);timer=setTimeout(()=>{if(document.visibilityState!=='visible'){document.addEventListener('visibilitychange',()=>later(1500,text),{once:true});return;}
       initial.then(()=>eligible()&&!answered?fetchSession({force:true,reason:'invite'}):null).then(()=>show(text)).catch(()=>{});},ms);}
-    if(pages>=2)later(delay,t('Create a free account to keep your progress, bookmarks and solved problems on every device. You can keep learning without one.'));
-    window.addEventListener('cnr:learning-updated',event=>{if(event.detail?.persistent&&!current?.user)later(1500,t('Saved on this device. Sign in to keep your progress on every device, or close this to keep going as a guest.'));});
+    if(pages>=(inviteWechat?1:2))later(delay,t('Create a free account to keep your progress, bookmarks and solved problems on every device. You can keep learning without one.'));
+    // Every page already gets the timed invite with data-auth-invite="wechat"; saving would only cut the reading time short.
+    if(!inviteWechat)window.addEventListener('cnr:learning-updated',event=>{if(event.detail?.persistent&&!current?.user)later(1500,t('Saved on this device. Sign in to keep your progress on every device, or close this to keep going as a guest.'));});
     dialog.addEventListener('close',()=>{
       if(!invited)return;invited=false;
       if(current?.user)return;
